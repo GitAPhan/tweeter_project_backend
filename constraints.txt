@@ -1,0 +1,8 @@
+## user
+
+username
+    length(`username`) > 5
+
+password
+    length(password) > 5
+
