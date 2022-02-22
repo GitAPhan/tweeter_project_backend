@@ -130,8 +130,10 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
         userId = cursor.lastrowid
     except db.IntegrityError:
         return "USER: value(s) entered does not meet database requirements", 400
-    # except Exception as E:
-    #     print(E)
+    except db.DataError as de:
+        return ("USER: "+str(de)), 400
+    except Exception as E:
+        return (E), 400
 
     try:
         # generate loginToken, add login session
@@ -142,9 +144,11 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
         )
         conn.commit()
     except db.IntegrityError:
-        return "USER: value(s) entered does not meet database requirements", 400
-    # except Exception as E:
-    # print(E)
+        return "USER: Login error", 400
+    except Exception as E:
+        return (E), 400
+    
+    disconnect_db(conn, cursor)
 
     try:
         if userId == None or loginToken == None:
@@ -157,3 +161,57 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
         return e, 400
 
     return response, status_code
+
+# edit existing user in db 
+def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerUrl):
+    conn, cursor = connect_db()
+    response = "Patch Error: general error"
+    status_code = 400
+
+    try:
+        query_keyname = ""
+        query_keyvalue = [loginToken]
+        # modify query selector
+        if  email != None:
+            query_keyname = ' email=?,' + query_keyname
+            query_keyvalue.insert(0, email)
+        if  username != None:
+            query_keyname = ' username=?,' + query_keyname
+            query_keyvalue.insert(0, username)
+        if  bio != None:
+            query_keyname = ' bio=?,' + query_keyname
+            query_keyvalue.insert(0, bio)
+        if  birthdate != None:
+            query_keyname = ' birthdate=?,' + query_keyname
+            query_keyvalue.insert(0, birthdate)
+        if  imageUrl != None:
+            query_keyname = ' imageUrl=?,' + query_keyname
+            query_keyvalue.insert(0, imageUrl)
+        if  bannerUrl != None:
+            query_keyname = ' bannerUrl=?,' + query_keyname
+            query_keyvalue.insert(0, bannerUrl)
+        
+        query_string = f"update user u inner join login l on u.id = l.user_id set {query_keyname[0:-1]} where l.login_token = ?"
+
+        cursor.execute(query_string, query_keyvalue)
+        conn.commit()
+        userId = cursor.lastrowid
+
+        if cursor.rowcount == 1:
+            disconnect_db(conn, cursor)
+            response, status_code = get_user_db(userId)
+        else:
+            disconnect_db(conn, cursor)
+            return 'Patch Error: nothing was updated', 400
+
+    except KeyError:
+        print('random error')
+    
+
+    return response, status_code
+
+test = {
+    "loginToken": "dI1K41mAMTFBcNbjQ2Fc1hzZMWX4Vhbg4OfZXmdha7QT6VXc5JDslpC_u_ERcPqSmzB0kQ9hHNKv6q88KAIi2Q",
+    "username": "editPostmanUsr"
+}
+print(patch_user_db(test["loginToken"],None,test["username"],None,None,None,None))

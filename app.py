@@ -94,6 +94,61 @@ def post_user():
 
 
 # patch user
+@app.patch("/api/users")
+def patch_user():
+    response: []
+    status_code: 500
+
+    # user input key variables
+    try:
+        loginToken = request.json['loginToken']
+    except KeyError:
+        return Response("ADMIN: Key error - 'loginToken'", mimetype="plain/text", status=status_code)
+    except Exception as e:
+        print(e)
+
+    try:
+        email = request.json['email']
+    except KeyError:
+        email = None
+        print('"email" keyname not present')
+
+    try:
+        username = request.json['username']
+    except KeyError:
+        username = None
+        print('"username" keyname not present')
+
+    try:
+        bio = request.json['bio']
+    except KeyError:
+        bio = None
+        print('"bio" keyname not present')
+
+    try:
+        birthdate = request.json['birthdate']
+    except KeyError:
+        birthdate = None
+        print('"birthdate" keyname not present')
+
+    try:
+        imageUrl = request.json['imageUrl']
+    except KeyError:
+        imageUrl = None
+        print('"imageUrl" keyname not present')
+
+    try:
+        bannerUrl = request.json['bannerUrl']
+    except KeyError:
+        bannerUrl = None
+        print('"bannerUrl" keyname not present')
+
+    # response from database
+    response, status_code = db.patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerUrl)
+    response_json = json.dumps(response, default=str)
+
+    return Response(response_json, mimetype="application/json", status=status_code)
+        
 
 # delete user
 
