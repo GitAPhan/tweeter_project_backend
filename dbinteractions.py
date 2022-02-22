@@ -30,6 +30,7 @@ def format_user_output(user, loginToken):
             "bannerUrl": user[6],
         }
 
+
 # connect to database function
 def connect_db():
     conn = None
@@ -113,25 +114,30 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
         query_questionmark = "?,?,?,?,?,?"
         query_keyvalue = [email, username, password, salt, bio, birthdate]
         if imageUrl != None:
-            query_keyname += ', imageUrl'
-            query_questionmark += ',?'
+            query_keyname += ", imageUrl"
+            query_questionmark += ",?"
             query_keyvalue.append(imageUrl)
         else:
             imageUrl = "default image url profile"
         if bannerUrl != None:
             query_keyname += ", bannerUrl"
-            query_questionmark += ',?'
+            query_questionmark += ",?"
             query_keyvalue.append(bannerUrl)
         else:
             bannerUrl = "default image url for banner"
-        query_string = f"insert into user ({query_keyname}) values ({query_questionmark})"
+        query_string = (
+            f"insert into user ({query_keyname}) values ({query_questionmark})"
+        )
         cursor.execute(query_string, query_keyvalue)
         conn.commit()
         userId = cursor.lastrowid
-    except db.IntegrityError:
-        return "USER: value(s) entered does not meet database requirements", 400
+    except db.IntegrityError as ie:
+        # changed name of constraints in user to work with the slicing
+        return "USER: Invalid value - " + str(ie)[0:-21], 400
+    except db.OperationalError as oe:
+        return "DB Error: " + str(oe), 500
     except db.DataError as de:
-        return ("USER: "+str(de)), 400
+        return ("USER: " + str(de)), 400
     except Exception as E:
         return (E), 400
 
@@ -143,18 +149,21 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
             [userId, loginToken],
         )
         conn.commit()
-    except db.IntegrityError:
-        return "USER: Login error", 400
+    except db.IntegrityError as ie:
+        return "USER: Invalid value - " + str(ie)[0:-21], 400
+    except db.OperationalError as oe:
+        return "DB Error: " + str(oe), 500
     except Exception as E:
         return (E), 400
-    
+
     disconnect_db(conn, cursor)
 
     try:
         if userId == None or loginToken == None:
             raise Exception
         response = format_user_output(
-            [userId, email, username, bio, birthdate, imageUrl, bannerUrl, loginToken], True
+            [userId, email, username, bio, birthdate, imageUrl, bannerUrl, loginToken],
+            True,
         )
         status_code = 201
     except Exception as e:
@@ -162,56 +171,85 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
 
     return response, status_code
 
-# edit existing user in db 
+
+# edit existing user in db
 def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerUrl):
     conn, cursor = connect_db()
     response = "Patch Error: general error"
     status_code = 400
+    userId = None
+
+    # check to see if loginToken is valid and catch invalid token exception
+    try:
+        # couldn't get the lastrowid to work so I had to add in an additional query
+        # might as well use it to authenticate the loginToken
+        cursor.execute("select user_id from login where login_token = ?", [loginToken])
+        userId = cursor.fetchone()[0]
+    except TypeError:
+        disconnect_db(conn, cursor)
+        return "USER: invalid 'loginToken'", 401
+    except db.OperationalError as oe:
+        return "DB Error: " + str(oe), 500
+    except Exception as E:
+        return (E), 400
 
     try:
         query_keyname = ""
         query_keyvalue = [loginToken]
-        # modify query selector
-        if  email != None:
-            query_keyname = ' email=?,' + query_keyname
-            query_keyvalue.insert(0, email)
-        if  username != None:
-            query_keyname = ' username=?,' + query_keyname
-            query_keyvalue.insert(0, username)
-        if  bio != None:
-            query_keyname = ' bio=?,' + query_keyname
-            query_keyvalue.insert(0, bio)
-        if  birthdate != None:
-            query_keyname = ' birthdate=?,' + query_keyname
-            query_keyvalue.insert(0, birthdate)
-        if  imageUrl != None:
-            query_keyname = ' imageUrl=?,' + query_keyname
-            query_keyvalue.insert(0, imageUrl)
-        if  bannerUrl != None:
-            query_keyname = ' bannerUrl=?,' + query_keyname
-            query_keyvalue.insert(0, bannerUrl)
+        # query_keyvalue = [userId]
         
+        # modify query selector
+        if email != None:
+            query_keyname = " u.email=?," + query_keyname
+            query_keyvalue.insert(0, email)
+        if username != None:
+            query_keyname = " u.username=?," + query_keyname
+            query_keyvalue.insert(0, username)
+        if bio != None:
+            query_keyname = " u.bio=?," + query_keyname
+            query_keyvalue.insert(0, bio)
+        if birthdate != None:
+            query_keyname = " u.birthdate=?," + query_keyname
+            query_keyvalue.insert(0, birthdate)
+        if imageUrl != None:
+            query_keyname = " u.imageUrl=?," + query_keyname
+            query_keyvalue.insert(0, imageUrl)
+        if bannerUrl != None:
+            query_keyname = " u.bannerUrl=?," + query_keyname
+            query_keyvalue.insert(0, bannerUrl)
+
+        # old query using inner join. Wasn't getting an value returned for lastrowid
         query_string = f"update user u inner join login l on u.id = l.user_id set {query_keyname[0:-1]} where l.login_token = ?"
+        # this query also didn't return userId either when using lastrowid
+        # query_string = f"update user u set {query_keyname[0:-1]} where u.id = ?"
 
         cursor.execute(query_string, query_keyvalue)
         conn.commit()
-        userId = cursor.lastrowid
+        row_count = cursor.rowcount
+        # userId = cursor.lastrowid
 
-        if cursor.rowcount == 1:
-            disconnect_db(conn, cursor)
+        if row_count == 1:
             response, status_code = get_user_db(userId)
         else:
             disconnect_db(conn, cursor)
-            return 'Patch Error: nothing was updated', 400
+            return "Patch Error: nothing was updated", 400
+    except db.OperationalError as oe:
+        return "DB Error: " + str(oe), 500
+    except db.IntegrityError as ie:
+        return "USER: Invalid value - " + str(ie)[0:-21], 400
+    except db.DataError as de:
+        return ("USER: " + str(de)), 400
+    except Exception as E:
+        return (E), 400
 
-    except KeyError:
-        print('random error')
-    
+    disconnect_db(conn, cursor)
 
     return response, status_code
 
-test = {
-    "loginToken": "dI1K41mAMTFBcNbjQ2Fc1hzZMWX4Vhbg4OfZXmdha7QT6VXc5JDslpC_u_ERcPqSmzB0kQ9hHNKv6q88KAIi2Q",
-    "username": "editPostmanUsr"
-}
-print(patch_user_db(test["loginToken"],None,test["username"],None,None,None,None))
+
+# test = {
+#     "loginToken": "dI1K41mAMTFBcNbjQ2Fc1hzZMWX4Vhbg4OfZXmdha7QT6VXc5JDslpC_u_ERcPqSmzB0kQ9hHNKv6q88KAIi2Q",
+#     "username": "editPostmanusr",
+#     "email": "newEmailTest@remailhub.com"
+# }
+# print(patch_user_db(test["loginToken"],test["email"],test["username"],"Lets change the bio as well to make sure everything is working",None,None,None))

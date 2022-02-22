@@ -29,8 +29,8 @@ CREATE TABLE `comment` (
   `user_id` int(10) unsigned NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `comment_FK` (`user_id`),
   KEY `comment_FK_1` (`tweet_id`),
+  KEY `comment_FK` (`user_id`),
   CONSTRAINT `comment_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `comment_FK_1` FOREIGN KEY (`tweet_id`) REFERENCES `tweet_like` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -65,14 +65,14 @@ DROP TABLE IF EXISTS `follow`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `follow` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id_follower` int(10) unsigned NOT NULL,
-  `user_id_followed` int(10) unsigned NOT NULL,
+  `follower_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `follows_un` (`user_id_follower`,`user_id_followed`),
-  KEY `follows_FK_1` (`user_id_followed`),
-  CONSTRAINT `follows_FK` FOREIGN KEY (`user_id_follower`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `follows_FK_1` FOREIGN KEY (`user_id_followed`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  UNIQUE KEY `follows_un` (`follower_id`,`user_id`),
+  KEY `follow_FK` (`user_id`),
+  CONSTRAINT `follow_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `follow_FK_1` FOREIGN KEY (`follower_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -85,14 +85,14 @@ DROP TABLE IF EXISTS `login`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `login` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `loginToken` varchar(100) NOT NULL,
+  `login_token` varchar(100) NOT NULL,
   `user_id` int(10) unsigned NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `login_un` (`loginToken`),
+  UNIQUE KEY `login_un` (`login_token`),
   KEY `login_FK` (`user_id`),
   CONSTRAINT `login_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -109,8 +109,8 @@ CREATE TABLE `tweet` (
   `image_url` varchar(150) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `tweets_FK` (`user_id`),
-  CONSTRAINT `tweets_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `tweet_FK` (`user_id`),
+  CONSTRAINT `tweet_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -143,15 +143,20 @@ DROP TABLE IF EXISTS `user`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(100) NOT NULL,
+  `username` varchar(65) NOT NULL,
   `bio` varchar(255) NOT NULL,
   `birthdate` date NOT NULL,
-  `imageUrl` varchar(150) NOT NULL DEFAULT 'default image link',
-  `bannerUrl` varchar(150) NOT NULL DEFAULT 'default banner url link',
+  `imageUrl` varchar(500) NOT NULL DEFAULT 'default image link',
+  `bannerUrl` varchar(500) NOT NULL DEFAULT 'default banner url link',
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `email` varchar(100) NOT NULL,
+  `password` varchar(150) NOT NULL DEFAULT '21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923',
+  `salt` varchar(50) NOT NULL DEFAULT 'eDukaUz-asT5gw',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `users_un` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  UNIQUE KEY `users_un` (`username`),
+  UNIQUE KEY `user_un` (`email`),
+  CONSTRAINT `user_check` CHECK (`username`  not like '% %' and year(`created_at`) - year(`birthdate`) > 13)
+) ENGINE=InnoDB AUTO_INCREMENT=1629 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -167,4 +172,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-02-15 20:33:52
+-- Dump completed on 2022-02-21 21:50:24
