@@ -1,9 +1,14 @@
 from flask import Flask, request, Response
 import dbinteractions as db
+import verification as v
 import json
 import sys
 
 app = Flask(__name__)
+
+# # Custom exceptions
+class InvalidValueEntered(Exception):
+    pass
 
 ## users
 # get user
@@ -31,6 +36,7 @@ def get_user():
 
     return Response(response_json, mimetype="application/json", status=status_code)
 
+
 # post user
 @app.post("/api/users")
 def post_user():
@@ -40,35 +46,52 @@ def post_user():
     # user input key variables
     try:
         key_error_message = "ADMIN: Key Error - 'email'"
-        email = request.json['email']
-        key_error_message = "ADMIN: Key Error - 'username'"
-        username = request.json['username']
-        key_error_message = "ADMIN: Key Error - 'password'"
-        password = request.json['password']
+        email = request.json["email"]
         key_error_message = "ADMIN: Key Error - 'bio'"
-        bio = request.json['bio']
+        bio = request.json["bio"]
         key_error_message = "ADMIN: Key Error - 'birthdate'"
-        birthdate = request.json['birthdate']
+        birthdate = request.json["birthdate"]
     except KeyError:
         return Response(key_error_message, mimetype="plain/text", status=500)
-
+    # user input password
+    try:
+        key_error_message = "ADMIN: Key Error - 'username'"
+        if v.verify_username(request.json['username']):
+            username = request.json["username"]
+        else:
+            status_code = 400
+            verify_error = "USER: 'username' cannot contain a space and has to be between 8 - 64 characters"
+            raise InvalidValueEntered
+        key_error_message = "ADMIN: Key Error - 'password'"
+        # check to make sure password is valid
+        if v.verify_password(request.json["password"]):
+            password, salt = v.hash_the_salted_password(request.json["password"])
+        else:
+            status_code = 400
+            verify_error = "USER: Please enter a valid password that is 8-64 characters long and contains a mix of uppercase and lowercase characters, a numeric and a special character"
+            raise InvalidValueEntered
+    except KeyError:
+        return Response(key_error_message, mimetype="plain/text", status=status_code)
+    except InvalidValueEntered:
+        return Response(verify_error, mimetype="plain/text", status=status_code)
     # user input optional variables
     try:
-        x = 0
-        imageUrl = request.json['imageUrl']
-        x = 1
-        bannerUrl = request.json['bannerUrl']
+        imageUrl = request.json["imageUrl"]
     except KeyError:
-        if x == 0:
-            imageUrl, bannerUrl = None, None
-        else:
-            bannerUrl = None
-    
+        imageUrl = None
+    try:
+        bannerUrl = request.json["bannerUrl"]
+    except KeyError:
+        bannerUrl = None
+
     # gather response from database
-    response, status_code = db.post_user_db(email, username, password, bio, birthdate, imageUrl, bannerUrl)
+    response, status_code = db.post_user_db(
+        email, username, password, salt, bio, birthdate, imageUrl, bannerUrl
+    )
     response_json = json.dumps(response, default=str)
-    
-    return Response(response_json, mimetype="application/json", status=status_code)        
+
+    return Response(response_json, mimetype="application/json", status=status_code)
+
 
 # patch user
 

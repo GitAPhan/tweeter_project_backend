@@ -1,43 +1,55 @@
-import hashlib
 import secrets
-import string
 import mariadb as db
 import dbcreds as c
 
-# create salt, add to password, hash
-def hash_the_salted_password(password):
-    salt = secrets.token_urlsafe(10)
-    password = password + salt
-    hash_result = hashlib.sha512(password.encode()).hexdigest()
-    return hash_result, salt
+# # Custon exceptions
+#
 
-# Grab the hashed salty password and the salt to add to the password, hash and verify
-def verify_hashed_salty_password(hashed_salty_password, salt, password):
-    password = password + salt
-    verify_hsp = hashlib.sha512(password.encode()).hexdigest()
-    # verify
-    if hashed_salty_password == verify_hsp:
-        return True
+## custom functions
+# format user request output
+def format_user_output(user, loginToken):
+    if loginToken:
+        return {
+            "userId": user[0],
+            "email": user[1],
+            "username": user[2],
+            "bio": user[3],
+            "birthdate": user[4],
+            "imageUrl": user[5],
+            "bannerUrl": user[6],
+            "loginToken": user[7],
+        }
     else:
-        return False
+        return {
+            "userId": user[0],
+            "email": user[1],
+            "username": user[2],
+            "bio": user[3],
+            "birthdate": user[4],
+            "imageUrl": user[5],
+            "bannerUrl": user[6],
+        }
 
 # connect to database function
 def connect_db():
     conn = None
     cursor = None
     try:
-        conn = db.connect(user=c.user,
-                          password=c.password,
-                          host=c.host,
-                          port=c.port,
-                          database=c.database)
+        conn = db.connect(
+            user=c.user,
+            password=c.password,
+            host=c.host,
+            port=c.port,
+            database=c.database,
+        )
         cursor = conn.cursor()
     except db.OperationalError:
         print("something went wrong with the DB, please try again in 5 minutes")
     except Exception as e:
         print(e)
         print("Something went wrong!")
-    return conn, cursor  
+    return conn, cursor
+
 
 # disconnect from database function
 def disconnect_db(conn, cursor):
@@ -53,6 +65,7 @@ def disconnect_db(conn, cursor):
         print(e)
         print("connection close error")
 
+
 ## users
 # get user from db
 def get_user_db(userId):
@@ -64,61 +77,83 @@ def get_user_db(userId):
     try:
         # conditional for query selector
         if userId == None:
-            cursor.execute("Select id, email, username, bio, birthdate, imageUrl, bannerUrl from user")
+            cursor.execute(
+                "Select id, email, username, bio, birthdate, imageUrl, bannerUrl from user"
+            )
         else:
-            cursor.execute("select id, email, username, bio, birthdate, imageUrl, bannerUrl from user where id = ?", [userId])
+            cursor.execute(
+                "select id, email, username, bio, birthdate, imageUrl, bannerUrl from user where id = ?",
+                [userId],
+            )
         users = cursor.fetchall()
 
         status_code = 200
     except Exception as e:
         return e, status_code
-    
+
     disconnect_db(conn, cursor)
 
     # format response for easier readability
     for user in users:
-        x = {
-            "userId": user[0],
-            "email": user[1],
-            "username": user[2],
-            "bio": user[3],
-            "birthdate": user[4],
-            "imageUrl": user[5],
-            "bannerUrl": user[6]
-        }
+        x = format_user_output(user, False)
         response.append(x)
-    
+
     return response, status_code
 
+
 # add user to database
-def post_user_db(email, username, password, bio, birthdate, imageUrl, bannerUrl):
+def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bannerUrl):
     conn, cursor = connect_db()
     status_code = 400
+    userId = None
+    loginToken = None
 
     try:
-        cursor.execute("insert into user (email, username, password, bio, birthdate, imageUrl, bannerUrl) values (?,?,?,?,?,?,?)", [email, username, password, bio, birthdate, imageUrl, bannerUrl])
+        query_keyname = "email, username, password, salt, bio, birthdate"
+        query_questionmark = "?,?,?,?,?,?"
+        query_keyvalue = [email, username, password, salt, bio, birthdate]
+        if imageUrl != None:
+            query_keyname += ', imageUrl'
+            query_questionmark += ',?'
+            query_keyvalue.append(imageUrl)
+        else:
+            imageUrl = "default image url profile"
+        if bannerUrl != None:
+            query_keyname += ", bannerUrl"
+            query_questionmark += ',?'
+            query_keyvalue.append(bannerUrl)
+        else:
+            bannerUrl = "default image url for banner"
+        query_string = f"insert into user ({query_keyname}) values ({query_questionmark})"
+        cursor.execute(query_string, query_keyvalue)
         conn.commit()
         userId = cursor.lastrowid
-    except:
-        pass
+    except db.IntegrityError:
+        return "USER: value(s) entered does not meet database requirements", 400
+    # except Exception as E:
+    #     print(E)
 
     try:
         # generate loginToken, add login session
-        loginToken = secrets.token_urlsafe(100)
-        cursor.execute('insert into login (user_id, login_token) values (?,?)', [userId, loginToken])
+        loginToken = secrets.token_urlsafe(64)
+        cursor.execute(
+            "insert into login (user_id, login_token) values (?,?)",
+            [userId, loginToken],
+        )
         conn.commit()
-    except:
-        pass
+    except db.IntegrityError:
+        return "USER: value(s) entered does not meet database requirements", 400
+    # except Exception as E:
+    # print(E)
 
-    response = {
-        "userId": userId,
-        "email": email,
-        "username": username,
-        "bio": bio,
-        "birthdate": birthdate,
-        "imageUrl": imageUrl,
-        "bannerUrl": bannerUrl,
-        "loginToken": loginToken,
-    }
+    try:
+        if userId == None or loginToken == None:
+            raise Exception
+        response = format_user_output(
+            [userId, email, username, bio, birthdate, imageUrl, bannerUrl, loginToken], True
+        )
+        status_code = 201
+    except Exception as e:
+        return e, 400
 
     return response, status_code
