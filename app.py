@@ -107,6 +107,7 @@ def patch_user():
     except Exception as e:
         print(e)
 
+    # set value of key variables to None if keyname was not present in request
     try:
         email = request.json['email']
     except KeyError:
@@ -147,13 +148,72 @@ def patch_user():
     response, status_code = db.patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerUrl)
     response_json = json.dumps(response, default=str)
 
-    return Response(response_json, mimetype="application/json", status=status_code)
-        
+    return Response(response_json, mimetype="application/json", status=status_code)        
 
-# delete user
+# # delete user
+@app.delete('/api/users')
+def delete_user():
+    hashpass = None
+    salt = "USER: Looks like we ran into some problems verifying your request, please check you credentials and try again!"
+    response = []
+    status_code = 400
+
+    # user input password and loginToken
+    try:
+        key_error_message = "ADMIN: Key Error - 'loginToken'"
+        loginToken = request.json['loginToken']
+        hashpass, salt = db.get_hashpass_salt_db(loginToken, "loginToken")
+
+        if hashpass == None or hashpass == False:
+            return Response(salt, mimetype="plain/text", status=401)
+
+        key_error_message = "ADMIN: Key Error - 'password'"
+        password = request.json['password']
+
+        if v.verify_hashed_salty_password(hashpass, salt, password):
+            response, status_code = db.delete_user_db(loginToken)
+        else:
+            return Response("USER: Invalid 'password', please check you credentials and try again!", mimetype="plain/text", status=401)
+    except KeyError:
+        return Response(key_error_message, mimetype="plain/text", status=500)
+
+    # final return
+    return Response(response, mimetype="plain/text", status=status_code)
+        
 
 ## login
 # post login
+@app.post('/api/login')
+def user_login():
+    hashpass = None
+    salt = None
+
+    response = None
+    status_code = 400
+
+    #user input email and password
+    try:
+        key_error_message = "ADMIN: Key Error - 'email'"
+        email = request.json['email']
+        hashpass, salt = db.get_hashpass_salt_db(email, "email")
+
+        if hashpass == None or hashpass == False:
+            return Response("USER: Authentication error - invalid 'email'", mimetype="plain/text", status=401)
+
+        key_error_message = "ADMIN: Key Error - 'password'"
+        password = request.json['password']
+        
+        if v.verify_hashed_salty_password(hashpass, salt, password):
+            response, status_code = db.user_login_db(email, "email")
+        else:
+            return Response("USER: Invalid 'password', please check you credentials and try again!", mimetype="plain/text", status=401)
+    except KeyError:
+        return Response(key_error_message, mimetype="plain/text", status=500)
+
+    response_json = json.dumps(response, default=str)
+
+    return Response(response_json, mimetype="application/json", status=status_code)
+
 
 # delete login
 

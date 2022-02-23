@@ -1,6 +1,7 @@
 import hashlib
 import re
 import secrets
+import mariadb as db
 
 # verify that the password is not weak
 def verify_password(password):
@@ -36,3 +37,4 @@ def verify_hashed_salty_password(hashed_salty_password, salt, password):
         return True
     else:
         return False
+
