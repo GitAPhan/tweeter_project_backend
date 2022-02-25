@@ -1,9 +1,9 @@
 from flask import Flask
-import dbinteractions.dbinteractions as db
-import helpers.verification as v
 import sys
 import endpoints.users as users
 import endpoints.login as login
+import endpoints.follows as follows
+
 
 app = Flask(__name__)
 
@@ -46,8 +46,14 @@ def user_logout():
 
 ## follows
 # get follow
+@app.get('/api/follows')
+def get_follow():
+    return follows.get()
 
 # post follow
+@app.post('/api/follows')
+def post_follow():
+    return follows.post()
 
 # delete follow
 

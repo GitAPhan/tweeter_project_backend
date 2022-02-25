@@ -22,7 +22,7 @@
 #             "imageUrl": users[5],
 #             "bannerUrl": users[6],
 #         }
-def format_user_output(users):
+def format_user_output(user):
     # VERSION 2 
     key_name = {
         0: "userId",
@@ -37,8 +37,9 @@ def format_user_output(users):
 
     return_payload = {}
     i = 0
-    for user in users:        
-        return_payload[key_name[i]] = user
+    for col in user:        
+        return_payload[key_name[i]] = col
         i += 1
 
     return return_payload
+
