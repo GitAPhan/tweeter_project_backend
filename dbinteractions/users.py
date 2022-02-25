@@ -1,6 +1,7 @@
 import dbinteractions.dbinteractions as db
 import secrets
 import mariadb as d
+import helpers.format_output as fo
 
 ## users
 # get user from db
@@ -31,7 +32,7 @@ def get_user_db(userId):
 
     # format response for easier readability
     for user in users:
-        x = db.format_user_output(user, False)
+        x = fo.format_user_output(user)
         response.append(x)
 
     return response, status_code
@@ -96,9 +97,8 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
     try:
         if userId == None or loginToken == None:
             raise Exception
-        response = db.format_user_output(
-            [userId, email, username, bio, birthdate, imageUrl, bannerUrl, loginToken],
-            True,
+        response = fo.format_user_output(
+            [userId, email, username, bio, birthdate, imageUrl, bannerUrl, loginToken]
         )
         status_code = 201
     except Exception as e:

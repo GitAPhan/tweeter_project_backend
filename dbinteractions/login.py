@@ -1,5 +1,6 @@
 import secrets
 import dbinteractions.dbinteractions as db
+import helpers.format_output as fo
 
 # # Login requests 
 # post login session and create loginToken
@@ -8,6 +9,7 @@ def user_login_db(payload, type):
     status = 0
     response = None
     status_code = 400
+    profile = []
     loginToken = secrets.token_urlsafe(64)
     choices = {
         "email": "email",
@@ -25,9 +27,11 @@ def user_login_db(payload, type):
     try:
         if status == 1:
             cursor.execute(f"Select id, email, username, bio, birthdate, imageUrl, bannerUrl from user where {query_keyname} = ?",[payload])
-            profile = cursor.fetchone()
+            output = cursor.fetchone()
+            profile = list(output)
+            profile.append(loginToken)
 
-            response = db.format_user_output([profile[0], profile[1], profile[2], profile[3], profile[4], profile[5], profile[6], loginToken], True)
+            response = fo.format_user_output(profile)
             status_code = 200
         else:
             response = "user profile was NOT logged in"
@@ -56,4 +60,8 @@ def user_logout_db(loginToken, userId):
             response = "ERROR: Looks like we weren't able to log you out, please try again in 5 minutes"
 
     except KeyError as ke:
-        print(str(ke))
+        response = "ERROR:" + str(ke)
+
+    db.disconnect_db(conn, cursor)
+
+    return response, status_code

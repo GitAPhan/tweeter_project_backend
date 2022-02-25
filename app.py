@@ -1,6 +1,6 @@
 from flask import Flask
 import dbinteractions.dbinteractions as db
-import verification as v
+import helpers.verification as v
 import sys
 import endpoints.users as users
 import endpoints.login as login

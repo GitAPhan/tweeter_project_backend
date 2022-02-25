@@ -1,7 +1,7 @@
 from flask import Flask, request, Response
 import json
 import dbinteractions.users as db
-import verification as v
+import helpers.verification as v
 
 
 # # Custom exceptions

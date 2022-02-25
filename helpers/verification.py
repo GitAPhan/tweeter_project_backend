@@ -2,6 +2,8 @@ import hashlib
 import re
 import secrets
 import mariadb as db
+from dbinteractions.dbinteractions import connect_db as connect_db
+from dbinteractions.dbinteractions import disconnect_db as disconnect_db
 
 # verify that the password is not weak
 def verify_password(password):
@@ -38,3 +40,25 @@ def verify_hashed_salty_password(hashed_salty_password, salt, password):
     else:
         return False
 
+# verify that the loginToken in valid
+def verify_loginToken(loginToken):
+    conn, cursor = connect_db()
+    userId = None
+
+    try:
+        # couldn't get the lastrowid to work so I had to add in an additional query
+        # might as well use it to authenticate the loginToken
+        cursor.execute("select user_id from login where login_token = ?", [loginToken])
+        userId = cursor.fetchone()[0]
+    except TypeError:
+        disconnect_db(conn,cursor)
+        return "USER: invalid 'loginToken'", 401
+    except db.OperationalError as oe:
+        disconnect_db(conn,cursor)
+        return "DB Error: " + str(oe), 500
+    except Exception as E:
+        disconnect_db(conn,cursor)
+        return (E), 400
+    
+    disconnect_db(conn,cursor)
+    return userId, True

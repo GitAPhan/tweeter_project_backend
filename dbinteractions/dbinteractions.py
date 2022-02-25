@@ -4,29 +4,6 @@ import dbinteractions.dbcreds as c
 
 
 ## custom functions
-# format user request output
-def format_user_output(user, loginToken):
-    if loginToken:
-        return {
-            "userId": user[0],
-            "email": user[1],
-            "username": user[2],
-            "bio": user[3],
-            "birthdate": user[4],
-            "imageUrl": user[5],
-            "bannerUrl": user[6],
-            "loginToken": user[7],
-        }
-    else:
-        return {
-            "userId": user[0],
-            "email": user[1],
-            "username": user[2],
-            "bio": user[3],
-            "birthdate": user[4],
-            "imageUrl": user[5],
-            "bannerUrl": user[6],
-        }
 
 
 # connect to database function
@@ -64,28 +41,7 @@ def disconnect_db(conn, cursor):
         print(e)
         print("connection close error")
 
-# verify that the loginToken in valid
-def verify_loginToken(loginToken):
-    conn, cursor = connect_db()
-    userId = None
 
-    try:
-        # couldn't get the lastrowid to work so I had to add in an additional query
-        # might as well use it to authenticate the loginToken
-        cursor.execute("select user_id from login where login_token = ?", [loginToken])
-        userId = cursor.fetchone()[0]
-    except TypeError:
-        disconnect_db(conn,cursor)
-        return "USER: invalid 'loginToken'", 401
-    except db.OperationalError as oe:
-        disconnect_db(conn,cursor)
-        return "DB Error: " + str(oe), 500
-    except Exception as E:
-        disconnect_db(conn,cursor)
-        return (E), 400
-    
-    disconnect_db(conn,cursor)
-    return userId, True
 
 # grab hashed_password and salt from database to be verified
 def get_hashpass_salt_db(payload, type):

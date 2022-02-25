@@ -1,7 +1,8 @@
 from flask import Flask, request, Response
 import json
-import dbinteractions.users as db
-import verification as v
+import dbinteractions.dbinteractions as db
+import dbinteractions.login as u
+import helpers.verification as v
 
 # post login
 def post():
@@ -24,7 +25,7 @@ def post():
         password = request.json['password']
         
         if v.verify_hashed_salty_password(hashpass, salt, password):
-            response, status_code = db.user_login_db(email, "email")
+            response, status_code = u.user_login_db(email, "email")
         else:
             return Response("USER: Invalid 'password', please check you credentials and try again!", mimetype="plain/text", status=401)
     except KeyError:
@@ -45,7 +46,14 @@ def delete():
     # user input of loginToken
     try:
         loginToken = request.json['loginToken']
-        userId, verify_status = db.verify_loginToken(loginToken)
+        userId, verify_status = v.verify_loginToken(loginToken)
 
         if verify_status == True:
-            response, status_code = db.user_logout_db(loginToken, userId)
+            response, status_code = u.user_logout_db(loginToken, userId)
+        else:
+            return Response("USER: loginToken was not valid", mimetype="plain/text", status=401)
+    except KeyError:
+        return Response("ADMIN: keyname 'loginToken' error", mimetype="plain/text", status=500)
+    
+    response_json = json.dumps(response, default=str)
+    return Response(response_json, mimetype="application/json", status=status_code)
