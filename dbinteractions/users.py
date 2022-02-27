@@ -1,3 +1,5 @@
+import json
+from flask import Response
 import dbinteractions.dbinteractions as db
 import secrets
 import mariadb as d
@@ -7,9 +9,8 @@ import helpers.format_output as fo
 # get user from db
 def get_user_db(userId):
     conn, cursor = db.connect_db()
-    users = []
-    response = []
-    status_code = 400
+    users = None
+    response = None
 
     try:
         # conditional for query selector
@@ -23,27 +24,33 @@ def get_user_db(userId):
                 [userId],
             )
         users = cursor.fetchall()
-
-        status_code = 200
     except Exception as e:
-        return e, status_code
+        return Response("DB Error: general GET error"+str(e), mimetype="plain/text", status=490)
 
     db.disconnect_db(conn, cursor)
 
-    # format response for easier readability
-    for user in users:
-        x = fo.format_user_output(user)
-        response.append(x)
+    if users == None:
+        return Response("DB Error: general GET error", mimetype="plain/text", status=491)
+    else:
+        response = []
+        # format response for easier readability
+        for user in users:
+            x = fo.format_user_output(user)
+            response.append(x)
+    
+    if response != []:
+        response_json = json.dumps(response, default=str)
+        response = Response(response_json, mimetype="application/json", status=200)
 
-    return response, status_code
+    return response
 
 
 # add user to database
 def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bannerUrl):
     conn, cursor = db.connect_db()
-    status_code = 400
     userId = None
     loginToken = None
+    response = None
 
     try:
         query_keyname = "email, username, password, salt, bio, birthdate"
@@ -67,51 +74,53 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
         cursor.execute(query_string, query_keyvalue)
         conn.commit()
         userId = cursor.lastrowid
+        if isinstance(userId, int) == False:
+            response = Response("No user created!", mimetype="plain/text", status=490)
     except d.IntegrityError as ie:
         # changed name of constraints in user to work with the slicing
-        return "USER: Invalid value - " + str(ie)[0:-21], 400
+        response = Response("USER: Invalid value - " + str(ie)[0:-21], mimetype='plain/text', status=400)
     except d.OperationalError as oe:
-        return "DB Error: " + str(oe), 500
+        response = Response("DB Error: " + str(oe), mimetype='plain/text', status=500)
     except d.DataError as de:
-        return ("USER: " + str(de)), 400
+        response = Response("USER: " + str(de), mimetype='plain/text', status=400)
     except Exception as E:
-        return (E), 400
+        response = Response("DB Error: general POST error" + str(E), mimetype='plain/text', status=491)
 
-    try:
-        # generate loginToken, add login session
-        loginToken = secrets.token_urlsafe(64)
-        cursor.execute(
-            "insert into login (user_id, login_token) values (?,?)",
-            [userId, loginToken],
-        )
-        conn.commit()
-    except d.IntegrityError as ie:
-        return "USER: Invalid value - " + str(ie)[0:-21], 400
-    except d.OperationalError as oe:
-        return "DB Error: " + str(oe), 500
-    except Exception as E:
-        return (E), 400
+    if response == None:
+        try:
+            # generate loginToken, add login session
+            loginToken = secrets.token_urlsafe(64)
+            cursor.execute(
+                "insert into login (user_id, login_token) values (?,?)",
+                [userId, loginToken],
+            )
+            conn.commit()
+        except d.IntegrityError as ie:
+            response = Response("USER: Invalid value - " + str(ie)[0:-21], mimetype='plain/text', status=400)
+        except d.OperationalError as oe:
+            response = Response("DB Error: " + str(oe), mimetype='plain/text', status=500)
+        except Exception as E:
+            response = Response("DB Error: general POST error" + str(E), mimetype='plain/text', status=491)
 
     db.disconnect_db(conn, cursor)
 
-    try:
-        if userId == None or loginToken == None:
-            raise Exception
-        response = fo.format_user_output(
-            [userId, email, username, bio, birthdate, imageUrl, bannerUrl, loginToken]
-        )
-        status_code = 201
-    except Exception as e:
-        return e, 400
+    if response != None:
+        return response
+    if userId == None or loginToken == None:
+        return Response('DB Error: general POST error', mimetype="plain/text", status=492)
+    response = fo.format_user_output(
+        [userId, email, username, bio, birthdate, imageUrl, bannerUrl, loginToken]
+    )
+    response_json = json.dumps(response, default=str)
+    response = Response(response_json, mimetype="application/json", status=200)
 
-    return response, status_code
+    return response
 
 
 # edit existing user in db
 def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerUrl):
     conn, cursor = db.connect_db()
-    response = "Patch Error: general error"
-    status_code = 400
+    response = None
     userId = None
 
     # check to see if loginToken is valid and catch invalid token exception

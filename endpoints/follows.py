@@ -7,49 +7,79 @@ import helpers.verification as v
 # Get follows
 def get():
     response = None
-    status_code = 400
 
     try:
-        # user input user_id 
-        userId = request.args['userId']
+        # user input user_id
+        userId = request.args["userId"]
+
+        # db request to grab users
+        response = f.get_db(userId)
     except KeyError:
-        return Response("ADMIN: key error - 'userId'", mimetype="plain/text", status=500)
+        return Response(
+            "ADMIN: key error - 'userId'", mimetype="plain/text", status=500
+        )
 
-    # db request to grab users
-    response, status_code = f.get_db(userId)
-
+    if response == None:
+        response = Response(
+            "Endpoint Error: General GET Error", mimetype="plain/text", status=493
+        )
     # Response
-    response_json = json.dumps(response, default=str)
-    return Response(response_json, mimetype="application/json", status=status_code)
+    return response
 
-# POST folows
+
+# POST follows
 def post():
     response = None
-    status_code = 400
-
     userId = None
     followId = None
 
     try:
-        key_error_message = "ADMIN: key error - 'loginToken'"
         # user input user
-        loginToken = request.json['loginToken']
+        response = Response(
+            "ADMIN: key error - 'loginToken'", mimetype="plain/text", status=500
+        )
+        loginToken = request.json["loginToken"]
 
         # verify loginToken
         userId, verify_status = v.verify_loginToken(loginToken)
+        if verify_status != True:
+            return Response(userId, mimetype="plain/text", status=verify_status)
 
-        if verify_status == False:
-            return Response(response, mimetype="plain/text", status=401)
+        response = Response(
+            "ADMIN: key error = 'followId'", mimetype="plain/text", status=500
+        )
+        followId = request.json["followId"]
 
-        key_error_message = "ADMIN: key error = 'followId'"
-        followId = request.json['followId']
     except KeyError:
-        return Response(key_error_message, mimetype="plain/text", status=500)
+        return response
 
     if userId == None and followId == None:
-        return Response('NEW ERROR ---- !!!! WTF !!!!')
+        return Response(
+            "NEW ERROR ---- !!!! WTF !!!!", mimetype="plain/text", status=409
+        )
+    # post to database
+    response = f.post_db(userId, followId)
 
-    # post to database 
-    response, status_code = f.post_db(userId, followId)
+    if response == None:
+        response = Response(
+            "Endpoint Error: General POST error", mimetype="plain/text", status=493
+        )
+
+    return response
+
+
+# DELETE follows
+def delete():
+    response = None
+    user_id = None
     
-    return Response(response, mimetype="application/json", status=status_code)
+    try:
+        # loginToken
+        response = Response(
+            "ADMIN: key error - 'loginToken'", mimetype="plain/text", status=500
+        )
+        loginToken = request.json['loginToken']
+        user_id, verify_status = v.verify_loginToken(loginToken)
+        if verify_status != True:
+            return Response(userId, mimetype="plain/text", status=verify_status)
+

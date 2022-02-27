@@ -56,6 +56,9 @@ def post_follow():
     return follows.post()
 
 # delete follow
+@app.delete('/api/follows')
+def delete_follow():
+    return follows.delete()
 
 ## followers
 # get follower

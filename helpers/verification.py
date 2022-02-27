@@ -1,6 +1,7 @@
 import hashlib
 import re
 import secrets
+from flask import Response
 import mariadb as db
 from dbinteractions.dbinteractions import connect_db as connect_db
 from dbinteractions.dbinteractions import disconnect_db as disconnect_db
@@ -44,21 +45,26 @@ def verify_hashed_salty_password(hashed_salty_password, salt, password):
 def verify_loginToken(loginToken):
     conn, cursor = connect_db()
     userId = None
+    verify_status = None
 
     try:
         # couldn't get the lastrowid to work so I had to add in an additional query
         # might as well use it to authenticate the loginToken
         cursor.execute("select user_id from login where login_token = ?", [loginToken])
         userId = cursor.fetchone()[0]
+        
+        if isinstance(userId, int):
+            verify_status = True
+
     except TypeError:
-        disconnect_db(conn,cursor)
-        return "USER: invalid 'loginToken'", 401
+        userId = Response("USER: invalid 'loginToken'", mimetype="plain/text", status=401)
+        verify_status = False
     except db.OperationalError as oe:
-        disconnect_db(conn,cursor)
-        return "DB Error: " + str(oe), 500
+        userId = Response("DB Error: " + str(oe), mimetype="plain/text", status=500)
+        verify_status = False
     except Exception as E:
-        disconnect_db(conn,cursor)
-        return (E), 400
+        userId = Response("Verify Error: general 'loginToken' error"+(E), mimetype="plain/text", status=498
+        verify_status = False
     
     disconnect_db(conn,cursor)
-    return userId, True
+    return userId, verify_status
