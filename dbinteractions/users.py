@@ -1,4 +1,5 @@
 import json
+from mimetypes import MimeTypes
 from flask import Response
 import dbinteractions.dbinteractions as db
 import secrets
@@ -122,18 +123,13 @@ def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerU
     conn, cursor = db.connect_db()
     response = None
     userId = None
+    status_code = None
 
     # check to see if loginToken is valid and catch invalid token exception
-    try:
-        userId, status_code = db.verify_loginToken(loginToken)
-        # conditional to check to see if token was valid
-        if status_code == True:
-            status_code = 400
-        else:
-            raise Exception
-    except Exception as e:
-        return userId, status_code
-
+    userId, status_code = db.verify_loginToken(loginToken)
+    # conditional to check to see if token was valid
+    if status_code != True:
+        return Response('Unauthorized entry: please enter valid loginToken', mimetype="plain/text", status=401)
 
     try:
         query_keyname = ""
@@ -171,41 +167,41 @@ def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerU
         # userId = cursor.lastrowid
 
         if row_count == 1:
-            response, status_code = get_user_db(userId)
+            response = get_user_db(userId)
         else:
-            db.disconnect_db(conn, cursor)
-            return "Patch Error: nothing was updated", 400
+            response = Response("Patch Error: nothing was updated", mimetype="plain/text" status=490)
     except d.OperationalError as oe:
-        return "DB Error: " + str(oe), 500
+        response = Response("DB Error: " + str(oe), mimetype="plain/text", status=500)
     except d.IntegrityError as ie:
-        return "USER: Invalid value - " + str(ie)[0:-21], 400
+        response = Response("USER: Invalid value - " + str(ie)[0:-21], mimetype="plain/text" status=400)
     except d.DataError as de:
-        return ("USER: " + str(de)), 400
+        response = Response("USER: " + str(de), mimetype="plain/text" status=400)
     except Exception as E:
-        return (E), 400
+        response = Response("DB Error: general PATCH error"+str(E),mimetype="plain/text", status=400)
 
     db.disconnect_db(conn, cursor)
 
-    return response, status_code
+    if status_code == None or response == None:
+        response = Response("DB Error: PATCH catch error", mimetype="plain/text", status=491)
+
+    return response
 
 # delete user from database
 def delete_user_db(loginToken):
     conn, cursor = db.connect_db()
     status = None
     response = None
-    status_code = 400
 
     try:
         cursor.execute("delete u from user u inner join login l on l.user_id = u.id where l.login_token = ?", [loginToken])
         conn.commit()
         status = cursor.rowcount
-    except KeyError as ke:
-        print(str(ke))
+    except Exception as e:
+        response = Response("DB Error: general DELETE error" + str(e), mimetype="plain/text", status=490)
 
     if status == 1:
-        response = 'user profile successfully deleted'
-        status_code = 200
+        response = Response('user profile successfully deleted', mimetype="plain/text", status=200)
     else:
-        response = "user profile was NOT deleted"
+        response = Response("user profile was NOT deleted", mimetype="plain/text", status=491)
     
-    return response, status_code
+    return response
