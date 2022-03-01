@@ -63,7 +63,7 @@ def verify_loginToken(loginToken):
         userId = Response("DB Error: " + str(oe), mimetype="plain/text", status=500)
         verify_status = False
     except Exception as E:
-        userId = Response("Verify Error: general 'loginToken' error"+(E), mimetype="plain/text", status=498
+        userId = Response("Verify Error: general 'loginToken' error"+(E), mimetype="plain/text", status=498)
         verify_status = False
     
     disconnect_db(conn,cursor)

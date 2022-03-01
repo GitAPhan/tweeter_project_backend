@@ -75,11 +75,21 @@ def delete():
     
     try:
         # loginToken
-        response = Response(
-            "ADMIN: key error - 'loginToken'", mimetype="plain/text", status=500
-        )
         loginToken = request.json['loginToken']
         user_id, verify_status = v.verify_loginToken(loginToken)
         if verify_status != True:
-            return Response(userId, mimetype="plain/text", status=verify_status)
+            return Response(userId, mimetype="plain/text", status=403)
+        
+        if user_id == None:
+            return Response("Endpoint Error: DELETE - follows", mimetype="plain/text", status=494)        
+        response = f.delete_db(user_id)
+    except KeyError as ke:
+        return Response("Endpoint Error: keyname DELETE - follow"+str(ke), mimetype="plain/text", status=500)
+    except Exception as E:
+        return Response("Endpoint Error: DELETE - follows"+str(E), mimetype="plain/text", status=495)
+
+    if response == None:
+        return Response("Endpoint Error: catch DELETE error", mimetype="plain/text", status=493)
+    
+    return response
 

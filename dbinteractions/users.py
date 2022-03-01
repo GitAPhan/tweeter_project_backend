@@ -5,6 +5,7 @@ import dbinteractions.dbinteractions as db
 import secrets
 import mariadb as d
 import helpers.format_output as fo
+import helpers.verification as v
 
 ## users
 # get user from db
@@ -126,7 +127,7 @@ def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerU
     status_code = None
 
     # check to see if loginToken is valid and catch invalid token exception
-    userId, status_code = db.verify_loginToken(loginToken)
+    userId, status_code = v.verify_loginToken(loginToken)
     # conditional to check to see if token was valid
     if status_code != True:
         return Response('Unauthorized entry: please enter valid loginToken', mimetype="plain/text", status=401)
@@ -169,13 +170,13 @@ def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerU
         if row_count == 1:
             response = get_user_db(userId)
         else:
-            response = Response("Patch Error: nothing was updated", mimetype="plain/text" status=490)
+            response = Response("Patch Error: nothing was updated", mimetype="plain/text", status=490)
     except d.OperationalError as oe:
         response = Response("DB Error: " + str(oe), mimetype="plain/text", status=500)
     except d.IntegrityError as ie:
-        response = Response("USER: Invalid value - " + str(ie)[0:-21], mimetype="plain/text" status=400)
+        response = Response("USER: Invalid value - " + str(ie)[0:-21], mimetype="plain/text", status=400)
     except d.DataError as de:
-        response = Response("USER: " + str(de), mimetype="plain/text" status=400)
+        response = Response("USER: " + str(de), mimetype="plain/text", status=400)
     except Exception as E:
         response = Response("DB Error: general PATCH error"+str(E),mimetype="plain/text", status=400)
 

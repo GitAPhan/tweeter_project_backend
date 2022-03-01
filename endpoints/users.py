@@ -1,17 +1,12 @@
 from flask import Flask, request, Response
 import json
 import dbinteractions.users as db
+import dbinteractions.dbinteractions as f
 import helpers.verification as v
-
-
-# # Custom exceptions
-class InvalidValueEntered(Exception):
-    pass
 
 # get user
 def get():
-    response = []
-    status_code = 500
+    response = None
 
     # user input
     try:
@@ -25,49 +20,49 @@ def get():
             status=400,
         )
     except:
-        return Response("USER: server error - please try again in 5 minutes ")
+        return Response("USER: server error - please try again in 5 minutes", mimetype="plain/text", status=500)
 
-    response, status_code = db.get_user_db(userId)
-    response_json = json.dumps(response, default=str)
+    response = db.get_user_db(userId)
 
-    return Response(response_json, mimetype="application/json", status=status_code)
+    if response == None:
+        response = Response("Endpoint Error: GET request was not completed", mimetype="plain/text", status=500)
+
+    return response
 
 # post user
 def post():
-    response = []
-    status_code = 500
+    response = None
 
     # user input key variables
     try:
-        key_error_message = "ADMIN: Key Error - 'email'"
+        keyname_verify = Response("ADMIN: Key Error - 'email'", mimetype="plain/text", status=500)
         email = request.json["email"]
-        key_error_message = "ADMIN: Key Error - 'bio'"
+        keyname_verify = Response("ADMIN: Key Error - 'bio'", mimetype="plain/text", status=500)
         bio = request.json["bio"]
-        key_error_message = "ADMIN: Key Error - 'birthdate'"
+        keyname_verify = Response("ADMIN: Key Error - 'birthdate'", mimetype="plain/text", status=500)
         birthdate = request.json["birthdate"]
     except KeyError:
-        return Response(key_error_message, mimetype="plain/text", status=500)
+        return keyname_verify
+    except Exception as E:
+        return Response("Endpoint Error: POST -" + str(E), mimetype="plain/text", status=493)
+
     # user input password
     try:
-        key_error_message = "ADMIN: Key Error - 'username'"
+        keyname_verify = Response("ADMIN: Key Error - 'username'", mimetype="plain/text", status=500) 
         if v.verify_username(request.json['username']):
             username = request.json["username"]
         else:
-            status_code = 400
-            verify_error = "USER: 'username' cannot contain a space and has to be between 8 - 64 characters"
-            raise InvalidValueEntered
-        key_error_message = "ADMIN: Key Error - 'password'"
+            return Response("USER: 'username' cannot contain a space and has to be between 8 - 64 characters", mimetype="plain/text", status=400)
+        keyname_verify = Response("ADMIN: Key Error - 'password'", mimetype="plain/text", status=500)
         # check to make sure password is valid
         if v.verify_password(request.json["password"]):
             password, salt = v.hash_the_salted_password(request.json["password"])
         else:
-            status_code = 400
-            verify_error = "USER: Please enter a valid password that is 8-64 characters long and contains a mix of uppercase and lowercase characters, a numeric and a special character"
-            raise InvalidValueEntered
+            return Response("USER: Please enter a valid password that is 8-64 characters long and contains a mix of uppercase and lowercase characters, a numeric and a special character", mimetype="plain/text", status=400)
     except KeyError:
-        return Response(key_error_message, mimetype="plain/text", status=status_code)
-    except InvalidValueEntered:
-        return Response(verify_error, mimetype="plain/text", status=status_code)
+        return keyname_verify
+    except Exception as E:
+        return Response("Endpoint Error: POST -" + str, mimetype="plain/text", status=400)
     # user input optional variables
     try:
         imageUrl = request.json["imageUrl"]
@@ -79,94 +74,99 @@ def post():
         bannerUrl = None
 
     # gather response from database
-    response, status_code = db.post_user_db(
+    response = db.post_user_db(
         email, username, password, salt, bio, birthdate, imageUrl, bannerUrl
     )
-    response_json = json.dumps(response, default=str)
+    if response == None:
+        response = Response('Endpoint Error: POST - catch error', mimetype="plain/text", status=493)
 
-    return Response(response_json, mimetype="application/json", status=status_code)
+    return response
 
 # patch user
 def patch():
-    response = []
-    status_code = 500
+    response = None
 
     # user input key variables
     try:
         loginToken = request.json['loginToken']
     except KeyError:
-        return Response("ADMIN: Key error - 'loginToken'", mimetype="plain/text", status=status_code)
+        return Response("ADMIN: Key error - 'loginToken'", mimetype="plain/text", status=500)
     except Exception as e:
-        print(e)
+        return Response("Endpoint Error: PATCH - " + str(e), mimetype="plain/text", status=400)
 
     # set value of key variables to None if keyname was not present in request
     try:
         email = request.json['email']
     except KeyError:
         email = None
-        print('"email" keyname not present')
+        print('"email" keyname not present') #testing only
 
     try:
         username = request.json['username']
     except KeyError:
         username = None
-        print('"username" keyname not present')
+        print('"username" keyname not present') #testing only
 
     try:
         bio = request.json['bio']
     except KeyError:
         bio = None
-        print('"bio" keyname not present')
+        print('"bio" keyname not present') #testing only
 
     try:
         birthdate = request.json['birthdate']
     except KeyError:
         birthdate = None
-        print('"birthdate" keyname not present')
+        print('"birthdate" keyname not present') #testing only
 
     try:
         imageUrl = request.json['imageUrl']
     except KeyError:
         imageUrl = None
-        print('"imageUrl" keyname not present')
+        print('"imageUrl" keyname not present') #testing only
 
     try:
         bannerUrl = request.json['bannerUrl']
     except KeyError:
         bannerUrl = None
-        print('"bannerUrl" keyname not present')
+        print('"bannerUrl" keyname not present') #testing only
 
     # response from database
-    response, status_code = db.patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerUrl)
-    response_json = json.dumps(response, default=str)
+    response = db.patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerUrl)
 
-    return Response(response_json, mimetype="application/json", status=status_code) 
+    if response == None:
+        response = Response("Endpoint Error: PATCH - catch error", mimetype="plain/text", status=493)
+
+    return response
 
 # delete user
 def delete():
     hashpass = None
-    salt = "USER: Looks like we ran into some problems verifying your request, please check you credentials and try again!"
-    response = []
-    status_code = 400
+    salt = None
+    response = None
 
     # user input password and loginToken
     try:
-        key_error_message = "ADMIN: Key Error - 'loginToken'"
+        keyname_verify = Response("ADMIN: Key Error - 'loginToken'", mimetype="plain/text", status=500)
         loginToken = request.json['loginToken']
-        hashpass, salt = db.get_hashpass_salt_db(loginToken, "loginToken")
+        hashpass, salt = f.get_hashpass_salt_db(loginToken, "loginToken")
 
-        if hashpass == None or hashpass == False:
-            return Response(salt, mimetype="plain/text", status=401)
+        if hashpass == False:
+            return salt
+        elif hashpass == None:
+            return Response("DB Auth Error: Endpoint DELETE - user", mimetype="plain/text", status=400)
 
-        key_error_message = "ADMIN: Key Error - 'password'"
+        keyname_verify = Response("ADMIN: Key Error - 'password'", mimetype="plain/text", status=500)
         password = request.json['password']
 
         if v.verify_hashed_salty_password(hashpass, salt, password):
-            response, status_code = db.delete_user_db(loginToken)
+            response = db.delete_user_db(loginToken)
         else:
-            return Response("USER: Invalid 'password', please check you credentials and try again!", mimetype="plain/text", status=401)
+            return Response("Invalid Credentials: wrong password!", mimetype="plain/text", status=401)
     except KeyError:
-        return Response(key_error_message, mimetype="plain/text", status=500)
+        return keyname_verify
+    except Exception as E:
+        return Response("Endpoint Error: DELETE -"+str(E), mimetype="plain/text", status=493)
 
     # final return
-    return Response(response, mimetype="plain/text", status=status_code)
+    return response

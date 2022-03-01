@@ -1,4 +1,5 @@
 import secrets
+from flask import Response
 import mariadb as db
 import dbinteractions.dbcreds as c
 
@@ -60,13 +61,13 @@ def get_hashpass_salt_db(payload, type):
     try:
         cursor.execute(query_statement, [payload])
         result = cursor.fetchone()
-    except KeyError:
-        pass
+    except Exception as E:
+        return Response("DB Auth Error: GET cred -"+str(E), mimetype="plain/text", status="401")
     
     disconnect_db(conn, cursor)
 
     if result == None:
-        return False, "USER: invalid authentication - 'loginToken' not found"
+        return False, Response("USER: invalid authentication - 'loginToken' not found", mimetype="plain/text", status=401)
     else:
         return result[0], result[1]
 
