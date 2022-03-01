@@ -77,12 +77,15 @@ def delete():
         # loginToken
         loginToken = request.json['loginToken']
         user_id, verify_status = v.verify_loginToken(loginToken)
-        if verify_status != True:
-            return Response(userId, mimetype="plain/text", status=403)
+        if verify_status == False:
+            return user_id
         
         if user_id == None:
             return Response("Endpoint Error: DELETE - follows", mimetype="plain/text", status=494)        
-        response = f.delete_db(user_id)
+        
+        followId = request.json['followId']
+        
+        response = f.delete_db(user_id, followId)
     except KeyError as ke:
         return Response("Endpoint Error: keyname DELETE - follow"+str(ke), mimetype="plain/text", status=500)
     except Exception as E:
@@ -93,3 +96,23 @@ def delete():
     
     return response
 
+def get_followers():
+    response = None
+
+    try:
+        # user input user_id
+        userId = request.args["userId"]
+
+        # db request to grab users
+        response = f.get_followers_db(userId)
+    except KeyError:
+        return Response(
+            "ADMIN: key error - 'userId'", mimetype="plain/text", status=500
+        )
+
+    if response == None:
+        response = Response(
+            "Endpoint Error: General GET Error - followers", mimetype="plain/text", status=493
+        )
+    # Response
+    return response

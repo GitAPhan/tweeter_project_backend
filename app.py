@@ -62,6 +62,9 @@ def delete_follow():
 
 ## followers
 # get follower
+@app.get('/api/followers')
+def get_followers():
+    return follows.get_followers()
 
 ## tweets
 # get tweet
