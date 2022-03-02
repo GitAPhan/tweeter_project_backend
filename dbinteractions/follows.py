@@ -1,5 +1,4 @@
 import json
-from mimetypes import MimeTypes
 import dbinteractions.dbinteractions as c
 import mariadb as db
 import helpers.format_output as fo
@@ -114,7 +113,7 @@ def delete_db(userId, followId):
     return response
 
 # GET followers
-def get_followers_db(userId):
+def get_follower_db(userId):
     conn, cursor = c.connect_db()
 
     users = None

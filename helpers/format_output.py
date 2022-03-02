@@ -43,3 +43,25 @@ def format_user_output(user):
 
     return return_payload
 
+def format_tweet_output(tweet):
+    key_name = {
+        0: "tweetId",
+        1: "userId",
+        2: "username",
+        3: "content",
+        4: "createdAt",
+        5: "userImageUrl",
+        6: "tweetImageUrl"
+    }
+
+    return_payload = {}
+    i = 0
+    increase = 1
+    if len(tweet) == 2:
+        increase = 3
+    for col in tweet:
+        return_payload[key_name[i]] = col
+        i += increase
+    
+    return return_payload
+

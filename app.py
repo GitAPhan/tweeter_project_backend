@@ -3,6 +3,7 @@ import sys
 import endpoints.users as users
 import endpoints.login as login
 import endpoints.follows as follows
+import endpoints.tweet as tweets
 
 
 app = Flask(__name__)
@@ -63,11 +64,14 @@ def delete_follow():
 ## followers
 # get follower
 @app.get('/api/followers')
-def get_followers():
-    return follows.get_followers()
+def get_follower():
+    return follows.get_follower()
 
 ## tweets
 # get tweet
+@app.get('/api/tweets')
+def get_tweet():
+    return tweets.get()
 
 # post tweet
 

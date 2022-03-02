@@ -1,4 +1,3 @@
-import imp
 import json
 from flask import Flask, request, Response
 import dbinteractions.follows as f
@@ -96,7 +95,7 @@ def delete():
     
     return response
 
-def get_followers():
+def get_follower():
     response = None
 
     try:
@@ -104,7 +103,7 @@ def get_followers():
         userId = request.args["userId"]
 
         # db request to grab users
-        response = f.get_followers_db(userId)
+        response = f.get_follower_db(userId)
     except KeyError:
         return Response(
             "ADMIN: key error - 'userId'", mimetype="plain/text", status=500
