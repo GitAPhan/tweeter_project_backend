@@ -74,8 +74,14 @@ def get_tweet():
     return tweets.get()
 
 # post tweet
+@app.post('/api/tweets')
+def post_tweet():
+    return tweets.post()
 
 # patch tweet
+@app.patch('/api/tweets')
+def patch_tweet():
+    return tweets.patch()
 
 # delete tweet
 

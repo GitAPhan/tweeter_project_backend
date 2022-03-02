@@ -57,7 +57,7 @@ def format_tweet_output(tweet):
     return_payload = {}
     i = 0
     increase = 1
-    if len(tweet) == 2:
+    if len(tweet) <= 3:
         increase = 3
     for col in tweet:
         return_payload[key_name[i]] = col
