@@ -1,5 +1,4 @@
-import json
-from flask import Flask, request, Response
+from flask import request, Response
 import dbinteractions.tweet as t
 import helpers.verification as v
 

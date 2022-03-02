@@ -1,5 +1,4 @@
 import json
-from mimetypes import MimeTypes
 from flask import Response
 import dbinteractions.dbinteractions as db
 import secrets

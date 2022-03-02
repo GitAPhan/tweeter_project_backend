@@ -1,5 +1,4 @@
 import json
-from math import degrees
 import dbinteractions.dbinteractions as c
 import mariadb as db
 import helpers.format_output as fo

@@ -1,5 +1,4 @@
-from flask import Flask, request, Response
-import json
+from flask import request, Response
 import dbinteractions.dbinteractions as db
 import dbinteractions.login as u
 import helpers.verification as v
@@ -10,50 +9,50 @@ def post():
     salt = None
 
     response = None
-    status_code = 400
 
     #user input email and password
     try:
-        key_error_message = "ADMIN: Key Error - 'email'"
+        keyname_verify = Response("ADMIN: Key Error - 'email'", mimetype="plain/text", status=500)
         email = request.json['email']
         hashpass, salt = db.get_hashpass_salt_db(email, "email")
 
         if hashpass == None or hashpass == False:
-            return Response("USER: Authentication error - invalid 'email'", mimetype="plain/text", status=401)
+            return salt
 
-        key_error_message = "ADMIN: Key Error - 'password'"
+        keyname_verify = Response("ADMIN: Key Error - 'password'", mimetype="plain/text", status=500)
         password = request.json['password']
         
         if v.verify_hashed_salty_password(hashpass, salt, password):
-            response, status_code = u.user_login_db(email, "email")
+            response = u.user_login_db(email, "email")
         else:
             return Response("USER: Invalid 'password', please check you credentials and try again!", mimetype="plain/text", status=401)
     except KeyError:
-        return Response(key_error_message, mimetype="plain/text", status=500)
+        return keyname_verify
 
-    response_json = json.dumps(response, default=str)
+    if response == None:
+        response = Response("Endpoint Error: POST login - catch error", mimetype="plain/text", status=493)
 
-    return Response(response_json, mimetype="application/json", status=status_code)
+    return response
 
 # delete login
 def delete():
     userId = None
-    verify_status = False
+    verify_status = None
 
     response = None
-    status_code = 400
 
     # user input of loginToken
     try:
         loginToken = request.json['loginToken']
         userId, verify_status = v.verify_loginToken(loginToken)
 
-        if verify_status == True:
-            response, status_code = u.user_logout_db(loginToken, userId)
-        else:
+        if verify_status == False or userId == None:
             return Response("USER: loginToken was not valid", mimetype="plain/text", status=401)
     except KeyError:
         return Response("ADMIN: keyname 'loginToken' error", mimetype="plain/text", status=500)
     
-    response_json = json.dumps(response, default=str)
-    return Response(response_json, mimetype="application/json", status=status_code)
+    response = u.user_logout_db(loginToken, userId)
+    
+    if response == None:
+        response = Response("Endpoint Error: DELETE logout - catch error", mimetype="plain/text", status=492)
+    return response

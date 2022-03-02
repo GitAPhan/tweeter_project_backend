@@ -56,7 +56,11 @@ def get_hashpass_salt_db(payload, type):
         "email": "u.email"
     }
     query_selector = choices[type]
-    query_statement = f"select password, salt from user u inner join login l on l.user_id = u.id where {query_selector} = ?"
+    # conditional to remove innerjoin if user enters email or username
+    query_innerjoin = "inner join login l on l.user_id = u.id"
+    if type != "loginToken":
+        query_innerjoin = ""
+    query_statement = f"select u.password, u.salt from user u {query_innerjoin} where {query_selector} = ?"
 
     try:
         cursor.execute(query_statement, [payload])

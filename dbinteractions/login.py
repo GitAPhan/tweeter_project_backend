@@ -1,3 +1,5 @@
+import json
+from flask import Response
 import secrets
 import dbinteractions.dbinteractions as db
 import helpers.format_output as fo
@@ -5,17 +7,16 @@ import helpers.format_output as fo
 # # Login requests 
 # post login session and create loginToken
 def user_login_db(payload, type):
-    conn, cursor = db.connect_db()
-    status = 0
+    status = None
     response = None
-    status_code = 400
-    profile = []
+    profile = None
     loginToken = secrets.token_urlsafe(64)
     choices = {
         "email": "email",
         "username": "username"
     }
     query_keyname = choices[type]
+    conn, cursor = db.connect_db()
 
     try:
         cursor.execute(f"insert into login (login_token, user_id) values (?,(select id from user where {query_keyname} = ?))",[loginToken, payload])
@@ -30,15 +31,24 @@ def user_login_db(payload, type):
             output = cursor.fetchone()
             profile = list(output)
             profile.append(loginToken)
-
-            response = fo.format_user_output(profile)
-            status_code = 200
         else:
-            response = "user profile was NOT logged in"
-    except KeyError:
-        print('error: Login error')
+            response = Response("user profile was NOT logged in", mimetype="plain/text", status=490)
+    except Exception as E:
+        response = Response("Login Attempt Error:"+str(E), mimetype="plain/text", status=403)
     
-    return response, status_code
+    db.disconnect_db(conn, cursor)
+
+    if profile == None:
+        response = Response("DB Error: Login general error", mimetype="plain/text", status=403)
+    else:
+        response = fo.format_user_output(profile)
+        response_json = json.dumps(response, default=str)
+        response = Response(response_json, mimetype="application/json", status=200)
+
+    if response == None:
+        response = Response("DB Error: Login catch error", mimetype="plain/text", status=403)   
+
+    return response
 
 # delete login session from db
 def user_logout_db(loginToken, userId):
@@ -46,7 +56,6 @@ def user_logout_db(loginToken, userId):
 
     status = None
     response = None
-    status_code = 400
 
     try:
         cursor.execute("delete from login where login_token = ? and user_id = ?",[loginToken, userId])
@@ -54,14 +63,16 @@ def user_logout_db(loginToken, userId):
         status = cursor.rowcount
 
         if status == 1:
-            response = "USER: You have successfully logged out"
-            status_code = 200
+            response = Response("USER: You have successfully logged out", mimetype="plain/text", status=200)
         else:
-            response = "ERROR: Looks like we weren't able to log you out, please try again in 5 minutes"
+            response = Response("ERROR: Looks like we weren't able to log you out, please try again in 5 minutes", mimetype="plain/text", status=491)
 
-    except KeyError as ke:
-        response = "ERROR:" + str(ke)
+    except Exception as E:
+        response = Response("DB Error: DELETE logout -"+str(E), mimetype="plain/text", status=491)
 
     db.disconnect_db(conn, cursor)
 
-    return response, status_code
+    if response == None:
+        response = Response("DB Error: DELETE logout - catch error", mimetype="plain/text", status=490)
+
+    return response

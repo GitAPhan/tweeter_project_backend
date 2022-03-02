@@ -65,3 +65,18 @@ def format_tweet_output(tweet):
     
     return return_payload
 
+# format tweet_like output
+def format_tweet_like_output(tweet):
+    key_name = {
+        0: "tweetId",
+        1: "userId",
+        2: "username",
+    }
+
+    return_payload = {}
+    i = 0
+    for col in tweet:
+        return_payload[key_name[i]] = col
+        i += 1
+    
+    return return_payload
