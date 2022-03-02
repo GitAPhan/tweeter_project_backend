@@ -83,15 +83,16 @@ DROP TABLE IF EXISTS `follow`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `follow` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `follower_id` int(10) unsigned NOT NULL,
+  `follow_id` int(10) unsigned NOT NULL,
   `user_id` int(10) unsigned NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `follows_un` (`follower_id`,`user_id`),
+  UNIQUE KEY `follows_un` (`follow_id`,`user_id`),
   KEY `follow_FK` (`user_id`),
   CONSTRAINT `follow_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `follow_FK_1` FOREIGN KEY (`follower_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  CONSTRAINT `follow_FK_1` FOREIGN KEY (`follow_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `you_cant_follow_yourself` CHECK (`user_id` <> `follow_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -100,6 +101,7 @@ CREATE TABLE `follow` (
 
 LOCK TABLES `follow` WRITE;
 /*!40000 ALTER TABLE `follow` DISABLE KEYS */;
+INSERT INTO `follow` VALUES (32,1661,1601,'2022-03-01 14:39:10'),(35,1661,1614,'2022-03-01 14:39:54'),(36,1661,1615,'2022-03-01 14:40:00'),(37,1615,1661,'2022-03-01 15:21:41'),(39,1601,1661,'2022-03-01 15:21:52');
 /*!40000 ALTER TABLE `follow` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -119,7 +121,7 @@ CREATE TABLE `login` (
   UNIQUE KEY `login_un` (`login_token`),
   KEY `login_FK` (`user_id`),
   CONSTRAINT `login_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -128,7 +130,7 @@ CREATE TABLE `login` (
 
 LOCK TABLES `login` WRITE;
 /*!40000 ALTER TABLE `login` DISABLE KEYS */;
-INSERT INTO `login` VALUES (2,'Sl57g0K7TGt-1HKyQKj6t3am13H3rJzKdfWCzM7NFUJYMHdt4UkFIo_ljLONrNRk5roUaoYMgrCmt5u0HeWRaA',1610,'2022-02-21 16:07:59'),(3,'momZgXMgp2eTG4V_YTpZZcVI9vGa3WhY8iPgo2AYDxQ_X3hsceavMDteWg1P5VvdA1yD6001B4HVSbD3YDc6Qw',1611,'2022-02-21 16:32:15'),(4,'rcNwsXhGBeredzwtewFiHqrDdnG4GDsXmWeXvYTOocInGl--DHY3t523fl_JGyM8hkwohO7mWrPvDh-Yxs-aOg',1613,'2022-02-21 16:44:22'),(5,'XKTvdfRnLoXKbqQhFHGrRwY9YiD8Jy4AearAN06Pfz552Urd7dc9plvX7iMx6E5ZNixlGnmTMOz9534bgrpTmQ',1614,'2022-02-21 16:48:28'),(6,'tBlJ7h9VYzZER21UEVRSxhqLKOygLL5nd_YD8vDpXNPhgOVLhlI1GMTyKSRT8ezjoHr49KTplB8dVpvzf6-Xtg',1615,'2022-02-21 17:53:59'),(13,'UOFp7DPfck6n3p9WSW374Q_gRjypPQ4EZcRbGUjcygI1iPrjKCCsQNNvNvSK73-nCwZR-3vi3RvMWd3GXkZfzg',1656,'2022-02-22 19:38:46'),(14,'oumkaOqyTLNGIdxXNoW0PcFDeuQpcJaBxkpSspi9a_F6y9k2c9KjTE7kZweQl9DPq-trhFNMbT8ST1CCKwyM0A',1611,'2022-02-22 19:44:15'),(15,'8aHPiwW-dsCNAAmb6m9NJo6RU4nTCA-i-SR9bjULoLTNhvwD_fuEKwGRh6eOjKy-yB1ctt00GM5EAsh4KNzOxQ',1611,'2022-02-22 19:52:35'),(16,'NK6JZh14DBHQXjg3lQB_le_S3CbQsBU6SGlpQPkCUP4xeG5ApvbWYTj0JNhI0rF9UuQEcaf6Eir0bcg1v4IY_g',1611,'2022-02-22 19:53:30'),(17,'lojIGaWWi7VUSNAbHRGBYH-_XnhWIKbB0wRafc4GLQ5yMQgob1J8d2HYhq7rK-MkmGh5k5dHQ-5acQjqoKWXzA',1611,'2022-02-22 19:57:02'),(18,'u_uKMW7sQdFNX5N0Xkwt6Vw8WHWPi9pnJkdG7sfCALi1pd9CMX-Tx7rzaprgfvVBVS2h50PpexEYzfUqszxNuQ',1611,'2022-02-22 19:59:49'),(19,'fOUgGozIbvXVEodxKHGrYD8ZvDQ6JAi1rhz7Bk6ThXQp-iyAeiZ_x-1JZo4IleLRJaX_eU2DTdUXJGwBOHu3Pg',1661,'2022-02-22 20:54:26');
+INSERT INTO `login` VALUES (2,'Sl57g0K7TGt-1HKyQKj6t3am13H3rJzKdfWCzM7NFUJYMHdt4UkFIo_ljLONrNRk5roUaoYMgrCmt5u0HeWRaA',1610,'2022-02-21 16:07:59'),(4,'rcNwsXhGBeredzwtewFiHqrDdnG4GDsXmWeXvYTOocInGl--DHY3t523fl_JGyM8hkwohO7mWrPvDh-Yxs-aOg',1613,'2022-02-21 16:44:22'),(5,'XKTvdfRnLoXKbqQhFHGrRwY9YiD8Jy4AearAN06Pfz552Urd7dc9plvX7iMx6E5ZNixlGnmTMOz9534bgrpTmQ',1614,'2022-02-21 16:48:28'),(6,'tBlJ7h9VYzZER21UEVRSxhqLKOygLL5nd_YD8vDpXNPhgOVLhlI1GMTyKSRT8ezjoHr49KTplB8dVpvzf6-Xtg',1615,'2022-02-21 17:53:59'),(13,'UOFp7DPfck6n3p9WSW374Q_gRjypPQ4EZcRbGUjcygI1iPrjKCCsQNNvNvSK73-nCwZR-3vi3RvMWd3GXkZfzg',1656,'2022-02-22 19:38:46'),(19,'fOUgGozIbvXVEodxKHGrYD8ZvDQ6JAi1rhz7Bk6ThXQp-iyAeiZ_x-1JZo4IleLRJaX_eU2DTdUXJGwBOHu3Pg',1661,'2022-02-22 20:54:26');
 /*!40000 ALTER TABLE `login` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -142,13 +144,13 @@ DROP TABLE IF EXISTS `tweet`;
 CREATE TABLE `tweet` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned NOT NULL,
-  `content` varchar(150) NOT NULL,
-  `image_url` varchar(150) DEFAULT NULL,
+  `content` varchar(200) NOT NULL,
+  `image_url` varchar(500) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `tweet_FK` (`user_id`),
   CONSTRAINT `tweet_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -157,6 +159,7 @@ CREATE TABLE `tweet` (
 
 LOCK TABLES `tweet` WRITE;
 /*!40000 ALTER TABLE `tweet` DISABLE KEYS */;
+INSERT INTO `tweet` VALUES (1,1610,'This is the very first tweet in the system',NULL,'2022-03-01 19:28:44'),(2,1610,'This is the very first tweet in the system',NULL,'2022-03-01 19:34:12'),(3,1610,'This is the very first tweet in the system',NULL,'2022-03-01 19:34:36'),(4,1610,'This is the very first tweet in the system',NULL,'2022-03-01 19:36:36'),(5,1610,'This is the very first tweet in the system',NULL,'2022-03-01 19:37:41'),(6,1613,'no contents needed','tweet image url','2022-03-01 19:40:34');
 /*!40000 ALTER TABLE `tweet` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -211,7 +214,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `u_email_un` (`email`),
   UNIQUE KEY `usrname_un` (`username`),
   CONSTRAINT `birthdate_check` CHECK (year(`created_at`) - year(`birthdate`) > 13)
-) ENGINE=InnoDB AUTO_INCREMENT=1662 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=1666 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -220,7 +223,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1601,'testUser','dkjfa;gheo;hagjdl;agjdhoanekjh;iohabkh','1970-01-01','default image link','default banner url link','2022-02-21 13:10:38','random@email.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1602,'badUsername','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 15:52:40','random3@email.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1603,'baddUsername','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 15:55:02','rando3m3@email.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1605,'baddUsername0','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 15:57:16','ranrdo3m3@email.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1607,'baddUsername2','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 16:00:49','ranrdo3m3@femgail.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1610,'baddUsername3','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 16:07:51','ranro3m3@femgail.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1611,'baddUsername4','this is a long bio!','2007-04-04','default image link','default banner url link','2022-02-21 16:32:15','random@esfmail.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1613,'testUsername','this is a long bio!','2004-04-04','https://images.unsplash.com/photo-1644094877479-facb0d5fc7da?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80','default banner url link','2022-02-21 16:44:22','random2@esfmail.com','5386fc05bfde57de7629f7c47b07bdbc0f4aa40c581f8269d053e403394f329e1a991dd06a5905bfeb85bddf12b1dc1a3e6a0ba9691b565878ec2ed02c1aee05','aG57UnJ030oHpw'),(1614,'testUsername2','this is a long bio!','2004-04-04','default image url profile','default image url for banner','2022-02-21 16:48:28','random21@esfmail.com','26c00cab81f4812ed1066037da7509cf63fcc487d8ad97192d0ef5e24e45bf071651e7033eb3ce24219e68b8e955119757ea140c46f6a5a9f284b99c650d4af1','2AdP-QpQI6hPaQ'),(1615,'testUsername22','this is a long bio!','2004-04-04','default image link','default banner url link','2022-02-21 17:53:59','random221@esfmail.com','d1a039a71ca4fdcdfd9d541f46842ea418c518264e3b594d292094f8c95c54c9723866ba82133f9ab22f8f908fd4ed6d61000e5f3d88c425e6d594b9ff855c93','bqOeYS9GtI_lhw'),(1656,'testUsername111','this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio!','2004-04-04','default image link','https://images.unsplash.com/photo-1644094877479-facb0d5fc7da?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80','2022-02-22 19:38:46','random1212@efmail.com','8618570e29e3169e6ca033f277f1530532d17ddbad81761d338ec551c988239a36ae2d5739b95a489d6a6b1f7869997ebb4934a77eba446042989d8b452f5c73','ywfKoHuRUib7Jg'),(1661,'testUsername1111','this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio!','2004-04-04','default image link','https://images.unsplash.com/photo-1644094877479-facb0d5fc7da?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80','2022-02-22 20:54:26','random1212@efmail.coom','8bc49b59cc19d1fff5d28a47476d5cd69c7270824905b9dcac240004d9421b4403094f2397b5d52169b2f295206144f8489e0e5cb493fc0459641c08780402c8','Vtk2U65SBA7wkg');
+INSERT INTO `user` VALUES (1601,'testUser','dkjfa;gheo;hagjdl;agjdhoanekjh;iohabkh','1970-01-01','default image link','default banner url link','2022-02-21 13:10:38','random@email.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1602,'badUsername','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 15:52:40','random3@email.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1603,'baddUsername','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 15:55:02','rando3m3@email.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1605,'baddUsername0','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 15:57:16','ranrdo3m3@email.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1607,'baddUsername2','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 16:00:49','ranrdo3m3@femgail.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1610,'baddUsername3','bio insert here','2008-04-04','default image link','default banner url link','2022-02-21 16:07:51','ranro3m3@femgail.com','21e5d6a1efed429c523d1de1255f30091b2fb63d5c92a2a530ad28b0463db795d216aa3bb3895052ef01399d867208b993bccf65b0483021152fa37ec2062923','eDukaUz-asT5gw'),(1613,'testUsername','this is a long bio!','2004-04-04','https://images.unsplash.com/photo-1644094877479-facb0d5fc7da?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80','default banner url link','2022-02-21 16:44:22','random2@esfmail.com','5386fc05bfde57de7629f7c47b07bdbc0f4aa40c581f8269d053e403394f329e1a991dd06a5905bfeb85bddf12b1dc1a3e6a0ba9691b565878ec2ed02c1aee05','aG57UnJ030oHpw'),(1614,'testUsername2','this is a long bio!','2004-04-04','default image url profile','default image url for banner','2022-02-21 16:48:28','random21@esfmail.com','26c00cab81f4812ed1066037da7509cf63fcc487d8ad97192d0ef5e24e45bf071651e7033eb3ce24219e68b8e955119757ea140c46f6a5a9f284b99c650d4af1','2AdP-QpQI6hPaQ'),(1615,'testUsername22','this is a long bio!','2004-04-04','default image link','default banner url link','2022-02-21 17:53:59','random221@esfmail.com','d1a039a71ca4fdcdfd9d541f46842ea418c518264e3b594d292094f8c95c54c9723866ba82133f9ab22f8f908fd4ed6d61000e5f3d88c425e6d594b9ff855c93','bqOeYS9GtI_lhw'),(1656,'testUsername111','this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio!','2004-04-04','default image link','https://images.unsplash.com/photo-1644094877479-facb0d5fc7da?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80','2022-02-22 19:38:46','random1212@efmail.com','8618570e29e3169e6ca033f277f1530532d17ddbad81761d338ec551c988239a36ae2d5739b95a489d6a6b1f7869997ebb4934a77eba446042989d8b452f5c73','ywfKoHuRUib7Jg'),(1661,'testUsername1111','this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio! this is a long bio!','2004-04-04','default image link','https://images.unsplash.com/photo-1644094877479-facb0d5fc7da?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80','2022-02-22 20:54:26','random1212@efmail.coom','8bc49b59cc19d1fff5d28a47476d5cd69c7270824905b9dcac240004d9421b4403094f2397b5d52169b2f295206144f8489e0e5cb493fc0459641c08780402c8','Vtk2U65SBA7wkg');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -237,4 +240,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-02-22 21:11:14
+-- Dump completed on 2022-03-01 21:06:45
