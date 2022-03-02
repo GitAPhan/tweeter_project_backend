@@ -84,6 +84,9 @@ def patch_tweet():
     return tweets.patch()
 
 # delete tweet
+@app.delete('/api/tweets')
+def delete_tweet():
+    return tweets.delete()
 
 ## tweet likes
 # get tweet like

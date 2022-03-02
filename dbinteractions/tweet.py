@@ -120,3 +120,33 @@ def patch_db(userId, tweetId, content, imageUrl):
         response = Response("DB Error: PATCH tweet - catch error", mimetype="plain/text", status=492)
     
     return response
+
+# DELETE tweet from database
+def delete_db(userId, tweetId):
+    response = None
+    status = None
+
+    conn, cursor = c.connect_db()
+
+    try:
+        cursor.execute("DELETE FROM tweet WHERE user_id = ? and id = ?",[userId, tweetId])
+        conn.commit()
+        status = cursor.rowcount
+    except Exception as E:
+        response = Response("DB Error: DELETE tweet -"+str(E), mimetype="plain/text", status=491)
+    
+    c.disconnect_db(conn, cursor)
+
+    if response != None:
+        return response
+    elif status == None:
+        return Response("DB Error: DELETE tweet - general error", mimetype="plain/text", status=490)
+    elif status == 0:
+        return Response("DB Error: DELETE tweet - no changes were made", mimetype="plain/text", status=491)
+    else:
+        response = Response("tweet successfully deleted", mimetype="plain/text", status=200)
+    
+    if response == None:
+        response = Response("DB Error: DELETE tweet - catch error", mimetype="plain/text", status=490)
+    
+    return response

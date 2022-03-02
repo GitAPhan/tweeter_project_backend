@@ -10,16 +10,20 @@ def get():
     userId = None
     tweetId = None
     try:
-        userId = request.args['userId']
+        userId = int(request.args['userId'])
     except KeyError:
         userId = None
-        print('"userID" keyname not present') #testing only
+        print('"userID" keyname not present') #testing 
+    except ValueError:
+        return Response("Endpoint Error: Invalid value entered for userId", mimetype="plain/text", status=400)
     
     try:
         tweetId = request.args['tweetId']
     except KeyError:
         tweetId = None
         print('"tweetId" keyname not present') #testing only
+    except ValueError:
+        return Response("Endpoint Error: Invalid value entered for tweetId", mimetype="plain/text", status=400)
     
     if userId == None and tweetId == None:
         return Response("Endpoint Error: GET - tweet 'keyname' error", mimetype="plain/text", status=500)
@@ -122,5 +126,35 @@ def patch():
 
     if response == None:
         response = Response("Endpoint Error: PATCH tweet - catch error", mimetype="plain/text", status=494)
+
+    return response
+
+
+# DELETE tweet
+def delete():
+    response = None
+    status = None
+    userId = None
+
+    try:
+        loginToken = request.json['loginToken']
+        userId, status = v.verify_loginToken(loginToken)
+
+        if status == False:
+            return userId
+    except KeyError:
+        return Response("'loginToken' keyname not present", mimetype="plain/text", status=500)
+    except Exception as E:
+        return Response("Endpoint Error: DELETE tweet -"+str(E), mimetype="plain/text", status=493)
+    
+    try:
+        tweetId = request.json['tweetId']
+    except KeyError:
+        return Response("'tweetId' keyname not present", mimetype="plain/text", status=500)
+
+    if userId == None or status == None:
+        return Response("Endpoint Error: DELETE tweet - general error", mimetype="plain/text", status=493)
+    
+    response = t.delete_db(userId, tweetId)
 
     return response
