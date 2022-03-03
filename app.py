@@ -96,8 +96,14 @@ def get_tweet_like():
     return tlike.get()
 
 # post tweet like
+@app.post('/api/tweet_likes')
+def post_tweet_like():
+    return tlike.post()
 
 # delete tweet like
+@app.delete('/api/tweet_likes')
+def delete_tweet_like():
+    return tlike.delete()
 
 ## comments
 # get commment

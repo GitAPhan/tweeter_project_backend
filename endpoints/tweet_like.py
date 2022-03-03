@@ -56,12 +56,56 @@ def post():
     except Exception as E:
         return Response("Endpoint Error: POST tweet_like -"+str(E), mimetype="plain/text", status=400)
 
+    # None check before database request
     if userId == None or tweetId == None:
         return Response("Endpoint Error: POST tweet_like - general error", mimetype="plain/text", status=400)
     else:
         response = t.post_db(userId, tweetId)
 
+    # None check - catch
     if response == None:
         response = Response("Endpoint Error: POST tweet_like - catch error", mimetype="plain/text", status=400)
+    
+    return response
+
+# DELETE request for tweet_likes
+def delete():
+    response = None
+    userId = None
+
+    try:
+        # input request and verification of token
+        loginToken = request.json['loginToken']
+        # verify token
+        userId, status = v.verify_loginToken(loginToken)
+
+        # status check
+        if status != True:
+            return Response("Invalid Credentials: 'we ran into some troubles verifying your token", mimetype="plain/text", status=403 )
+    except KeyError:
+        return Response("Endpoint Error: 'loginToken' keyname not present", mimetype="plain/text", status=500)
+    except Exception as E:
+        return Response("Endpoint Error: DELETE tweet_like -"+str(E), mimetype="plain/text", status=499)
+
+    try:
+        # input request for tweetId
+        tweetId = int(request.json['tweetId'])
+
+        # None check 
+        if userId == None:
+            return Response("Endpoint Error: verify loginToken did not run", mimetype="plain/text", status=499)
+
+        # database request
+        response = t.delete_db(userId, tweetId)
+    except KeyError:
+        return Response("Endpoint Error: 'tweetId' keyname not present", mimetype="plain/text", status=500)
+    except ValueError:
+        return Response("Endpoint Error: Invalid value entered", mimetype="plain/text", status=400)
+    except Exception as E:
+        return Response("Endpoint Error: POST tweet_like -"+str(E), mimetype="plain/text", status=400)
+
+    # None check - catch
+    if response == None:
+        response = Response("Endpoint Error: DELETE tweet_like - catch error", mimetype="plain/text", status=499)
     
     return response
