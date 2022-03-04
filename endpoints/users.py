@@ -21,7 +21,7 @@ def get():
     except:
         return Response("USER: server error - please try again in 5 minutes", mimetype="plain/text", status=500)
 
-    response = db.get_user_db(userId)
+    response = db.get_db(userId)
 
     if response == None:
         response = Response("Endpoint Error: GET request was not completed", mimetype="plain/text", status=500)
@@ -84,10 +84,15 @@ def post():
 # patch user
 def patch():
     response = None
+    user = None
 
     # user input key variables
     try:
         loginToken = request.json['loginToken']
+        user, status = v.verify_loginToken(loginToken)
+
+        if status != True:
+            return Response("Endpoint Error: PATCH - token verify fail", mimetype="plain/text", status=403)
     except KeyError:
         return Response("ADMIN: Key error - 'loginToken'", mimetype="plain/text", status=500)
     except Exception as e:
@@ -130,8 +135,9 @@ def patch():
         bannerUrl = None
         print('"bannerUrl" keyname not present') #testing only
 
-    # response from database
-    response = db.patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerUrl)
+    if user != None:
+        # response from database
+        response = db.patch_db(user['id'], email, username, bio, birthdate, imageUrl, bannerUrl)
 
     if response == None:
         response = Response("Endpoint Error: PATCH - catch error", mimetype="plain/text", status=493)
@@ -159,7 +165,7 @@ def delete():
         password = request.json['password']
 
         if v.verify_hashed_salty_password(hashpass, salt, password):
-            response = db.delete_user_db(loginToken)
+            response = db.delete_db(loginToken)
         else:
             return Response("Invalid Credentials: wrong password!", mimetype="plain/text", status=401)
     except KeyError:

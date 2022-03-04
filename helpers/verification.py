@@ -48,12 +48,15 @@ def verify_loginToken(loginToken):
     verify_status = None
 
     try:
-        # couldn't get the lastrowid to work so I had to add in an additional query
-        # might as well use it to authenticate the loginToken
-        cursor.execute("select user_id from login where login_token = ?", [loginToken])
-        userId = cursor.fetchone()[0]
+        # query to select userId and username of user related to the loginToken
+        cursor.execute("SELECT u.id, u.username FROM login l INNER JOIN user u ON u.id = l.user_id WHERE l.login_token = ?", [loginToken])
+        response = cursor.fetchall()[0]
+        userId = {
+            'id': response[0],
+            'name': response[1]
+        }
         
-        if isinstance(userId, int):
+        if isinstance(userId["userId"], int):
             verify_status = True
 
     except TypeError:
@@ -63,7 +66,7 @@ def verify_loginToken(loginToken):
         userId = Response("DB Error: " + str(oe), mimetype="plain/text", status=500)
         verify_status = False
     except Exception as E:
-        userId = Response("Verify Error: general 'loginToken' error"+(E), mimetype="plain/text", status=498)
+        userId = Response("Verify Error: general 'loginToken' error"+str(E), mimetype="plain/text", status=498)
         verify_status = False
     
     disconnect_db(conn,cursor)

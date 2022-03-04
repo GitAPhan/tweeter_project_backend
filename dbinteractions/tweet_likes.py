@@ -59,6 +59,8 @@ def post_db(userId, tweetId):
     except Exception as E:
         response = Response("DB Error: POST tweet_like -"+str(E), mimetype="plain/text", status=400)
     
+    c.disconnect_db(conn, cursor)
+
     # return any value in response other than None 
     if response != None:
         return response
@@ -89,6 +91,8 @@ def delete_db(userId, tweetId):
             response = Response("no changes have been made", mimetype="plain/text", status=400)
     except Exception as E:
         response = Response("DB Error: DELETE tweet_like - "+str(E), mimetype="plain/text", status=499)
+
+    c.disconnect_db(conn, cursor)
 
     # None check - catch
     if response == None:

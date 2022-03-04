@@ -22,6 +22,8 @@
 #             "imageUrl": users[5],
 #             "bannerUrl": users[6],
 #         }
+
+
 def format_user_output(user):
     # VERSION 2 
     key_name = {
@@ -79,4 +81,23 @@ def format_tweet_like_output(tweet):
         return_payload[key_name[i]] = col
         i += 1
     
+    return return_payload
+
+# format comment output
+def comment(comment):
+    keyname = {
+        0: "commentId",
+        1: "tweetId",
+        2: "userId",
+        3: "username",
+        4: "content",
+        5: "createdAt"
+    }
+
+    return_payload = {}
+    i = 0
+    for col in comment:
+        return_payload[keyname[i]] = col
+        i += 1
+
     return return_payload

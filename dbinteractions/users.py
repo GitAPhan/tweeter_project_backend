@@ -8,7 +8,7 @@ import helpers.verification as v
 
 ## users
 # get user from db
-def get_user_db(userId):
+def get_db(userId):
     conn, cursor = db.connect_db()
     users = None
     response = None
@@ -119,45 +119,38 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
 
 
 # edit existing user in db
-def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerUrl):
+def patch_db(userId, email, username, bio, birthdate, imageUrl, bannerUrl):
     conn, cursor = db.connect_db()
     response = None
-    userId = None
     status_code = None
-
-    # check to see if loginToken is valid and catch invalid token exception
-    userId, status_code = v.verify_loginToken(loginToken)
-    # conditional to check to see if token was valid
-    if status_code != True:
-        return Response('Unauthorized entry: please enter valid loginToken', mimetype="plain/text", status=401)
 
     try:
         query_keyname = ""
-        query_keyvalue = [loginToken]
+        query_keyvalue = [userId]
         # query_keyvalue = [userId]
         
         # modify query selector
         if email != None:
-            query_keyname = " u.email=?," + query_keyname
+            query_keyname = " email=?," + query_keyname
             query_keyvalue.insert(0, email)
         if username != None:
-            query_keyname = " u.username=?," + query_keyname
+            query_keyname = " username=?," + query_keyname
             query_keyvalue.insert(0, username)
         if bio != None:
-            query_keyname = " u.bio=?," + query_keyname
+            query_keyname = " bio=?," + query_keyname
             query_keyvalue.insert(0, bio)
         if birthdate != None:
-            query_keyname = " u.birthdate=?," + query_keyname
+            query_keyname = " birthdate=?," + query_keyname
             query_keyvalue.insert(0, birthdate)
         if imageUrl != None:
-            query_keyname = " u.imageUrl=?," + query_keyname
+            query_keyname = " imageUrl=?," + query_keyname
             query_keyvalue.insert(0, imageUrl)
         if bannerUrl != None:
-            query_keyname = " u.bannerUrl=?," + query_keyname
+            query_keyname = " bannerUrl=?," + query_keyname
             query_keyvalue.insert(0, bannerUrl)
 
         # old query using inner join. Wasn't getting an value returned for lastrowid
-        query_string = f"update user u inner join login l on u.id = l.user_id set {query_keyname[0:-1]} where l.login_token = ?"
+        query_string = f"update user set {query_keyname[0:-1]} where id=?"
         # this query also didn't return userId either when using lastrowid
         # query_string = f"update user u set {query_keyname[0:-1]} where u.id = ?"
 
@@ -167,7 +160,7 @@ def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerU
         # userId = cursor.lastrowid
 
         if row_count == 1:
-            response = get_user_db(userId)
+            response = get_db(userId)
         else:
             response = Response("Patch Error: nothing was updated", mimetype="plain/text", status=490)
     except d.OperationalError as oe:
@@ -187,7 +180,7 @@ def patch_user_db(loginToken, email, username, bio, birthdate, imageUrl, bannerU
     return response
 
 # delete user from database
-def delete_user_db(loginToken):
+def delete_db(loginToken):
     conn, cursor = db.connect_db()
     status = None
     response = None

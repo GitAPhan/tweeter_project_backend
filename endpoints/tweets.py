@@ -1,5 +1,5 @@
 from flask import request, Response
-import dbinteractions.tweet as t
+import dbinteractions.tweets as t
 import helpers.verification as v
 
 # GET tweet
@@ -38,16 +38,16 @@ def get():
 def post():
     response = None
     status = None
-    userId = None
+    user = None
     content = None
     imageUrl = None
 
     try:
         loginToken = request.json['loginToken']
-        userId, status = v.verify_loginToken(loginToken)
+        user, status = v.verify_loginToken(loginToken)
 
         if status == False:
-            return userId
+            return user
     except KeyError:
         return Response("'loginToken' keyname not present", mimetype="plain/text", status=500)
     except Exception as E:
@@ -69,10 +69,10 @@ def post():
     except Exception as E:
         return Response("Endpoint Error: POST tweet - "+str(E), mimetype="plain/text", status=492)
 
-    if userId == None or content == None:
+    if user == None or content == None:
         return Response("Endpoint Error: POST tweet - general error", mimetype="plain/text", status=493)
 
-    response = t.post_db(userId, content, imageUrl)
+    response = t.post_db(user['id'], content, imageUrl)
 
     if response == None:
         response = Response("Endpoint Error: POST tweet - catch error", mimetype="plain/text", status=494)
@@ -83,17 +83,17 @@ def post():
 def patch():
     response = None
     status = None
-    userId = None
+    user = None
     content = None
     tweetId = None
     imageUrl = None
 
     try:
         loginToken = request.json['loginToken']
-        userId, status = v.verify_loginToken(loginToken)
+        user, status = v.verify_loginToken(loginToken)
 
         if status == False:
-            return userId
+            return user
     except KeyError:
         return Response("'loginToken' keyname not present", mimetype="plain/text", status=500)
     except Exception as E:
@@ -118,10 +118,10 @@ def patch():
     except Exception as E:
         return Response("Endpoint Error: PATCH tweet - "+str(E), mimetype="plain/text", status=492)
 
-    if userId == None or content == None or tweetId == None:
+    if user == None or content == None or tweetId == None:
         return Response("Endpoint Error: PATCH tweet - general error", mimetype="plain/text", status=493)
 
-    response = t.patch_db(userId, tweetId, content, imageUrl)
+    response = t.patch_db(user['id'], tweetId, content, imageUrl)
 
     if response == None:
         response = Response("Endpoint Error: PATCH tweet - catch error", mimetype="plain/text", status=494)
@@ -133,14 +133,14 @@ def patch():
 def delete():
     response = None
     status = None
-    userId = None
+    user = None
 
     try:
         loginToken = request.json['loginToken']
-        userId, status = v.verify_loginToken(loginToken)
+        user, status = v.verify_loginToken(loginToken)
 
         if status == False:
-            return userId
+            return user
     except KeyError:
         return Response("'loginToken' keyname not present", mimetype="plain/text", status=500)
     except Exception as E:
@@ -151,9 +151,9 @@ def delete():
     except KeyError:
         return Response("'tweetId' keyname not present", mimetype="plain/text", status=500)
 
-    if userId == None or status == None:
+    if user == None or status == None:
         return Response("Endpoint Error: DELETE tweet - general error", mimetype="plain/text", status=493)
     
-    response = t.delete_db(userId, tweetId)
+    response = t.delete_db(user['id'], tweetId)
 
     return response

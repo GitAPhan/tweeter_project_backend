@@ -36,7 +36,7 @@ def post():
 
 # delete login
 def delete():
-    userId = None
+    user = None
     verify_status = None
 
     response = None
@@ -44,14 +44,14 @@ def delete():
     # user input of loginToken
     try:
         loginToken = request.json['loginToken']
-        userId, verify_status = v.verify_loginToken(loginToken)
+        user, verify_status = v.verify_loginToken(loginToken)
 
-        if verify_status == False or userId == None:
+        if verify_status == False or user == None:
             return Response("USER: loginToken was not valid", mimetype="plain/text", status=401)
     except KeyError:
         return Response("ADMIN: keyname 'loginToken' error", mimetype="plain/text", status=500)
     
-    response = u.user_logout_db(loginToken, userId)
+    response = u.user_logout_db(loginToken, user['id'])
     
     if response == None:
         response = Response("Endpoint Error: DELETE logout - catch error", mimetype="plain/text", status=492)

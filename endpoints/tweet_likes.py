@@ -1,5 +1,5 @@
 from flask import request, Response
-import dbinteractions.tweet_like as t
+import dbinteractions.tweet_likes as t
 import helpers.verification as v
 
 # GET request for tweet like
@@ -32,12 +32,12 @@ def post():
     response = None
     tweetId = None
     status = None
-    userId = None
+    user = None
 
     # input request for loginToken, verify that user's login session is active
     try:
         loginToken = request.json['loginToken']
-        userId, status = v.verify_loginToken(loginToken)
+        user, status = v.verify_loginToken(loginToken)
 
         if status != True:
             return Response("Unauthorized: we ran into a problem verifying this token", mimetype="plain/text", status=403)
@@ -57,10 +57,10 @@ def post():
         return Response("Endpoint Error: POST tweet_like -"+str(E), mimetype="plain/text", status=400)
 
     # None check before database request
-    if userId == None or tweetId == None:
+    if user == None or tweetId == None:
         return Response("Endpoint Error: POST tweet_like - general error", mimetype="plain/text", status=400)
     else:
-        response = t.post_db(userId, tweetId)
+        response = t.post_db(user['id'], tweetId)
 
     # None check - catch
     if response == None:
@@ -71,13 +71,13 @@ def post():
 # DELETE request for tweet_likes
 def delete():
     response = None
-    userId = None
+    user = None
 
     try:
         # input request and verification of token
         loginToken = request.json['loginToken']
         # verify token
-        userId, status = v.verify_loginToken(loginToken)
+        user, status = v.verify_loginToken(loginToken)
 
         # status check
         if status != True:
@@ -92,11 +92,11 @@ def delete():
         tweetId = int(request.json['tweetId'])
 
         # None check 
-        if userId == None:
+        if user == None:
             return Response("Endpoint Error: verify loginToken did not run", mimetype="plain/text", status=499)
 
         # database request
-        response = t.delete_db(userId, tweetId)
+        response = t.delete_db(user['id'], tweetId)
     except KeyError:
         return Response("Endpoint Error: 'tweetId' keyname not present", mimetype="plain/text", status=500)
     except ValueError:

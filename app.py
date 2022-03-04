@@ -3,8 +3,9 @@ import sys
 import endpoints.users as users
 import endpoints.login as login
 import endpoints.follows as follows
-import endpoints.tweet as tweets
-import endpoints.tweet_like as tlike
+import endpoints.tweets as tweets
+import endpoints.tweet_likes as tlike
+import endpoints.comments as comments
 
 
 app = Flask(__name__)
@@ -107,8 +108,14 @@ def delete_tweet_like():
 
 ## comments
 # get commment
+@app.get('/api/comments')
+def get_comment():
+    return comments.get()
 
 # post comment
+@app.post('/api/comments')
+def post_comment():
+    return comments.post()
 
 # patch comment
 

@@ -28,7 +28,7 @@ def get():
 # POST follows
 def post():
     response = None
-    userId = None
+    user = None
     followId = None
 
     try:
@@ -39,9 +39,9 @@ def post():
         loginToken = request.json["loginToken"]
 
         # verify loginToken
-        userId, verify_status = v.verify_loginToken(loginToken)
+        user, verify_status = v.verify_loginToken(loginToken)
         if verify_status != True:
-            return Response(userId, mimetype="plain/text", status=verify_status)
+            return Response(user, mimetype="plain/text", status=verify_status)
 
         response = Response(
             "ADMIN: key error = 'followId'", mimetype="plain/text", status=500
@@ -51,12 +51,12 @@ def post():
     except KeyError:
         return response
 
-    if userId == None and followId == None:
+    if user == None and followId == None:
         return Response(
             "NEW ERROR ---- !!!! WTF !!!!", mimetype="plain/text", status=409
         )
     # post to database
-    response = f.post_db(userId, followId)
+    response = f.post_db(user['id'], followId)
 
     if response == None:
         response = Response(
@@ -69,21 +69,21 @@ def post():
 # DELETE follows
 def delete():
     response = None
-    user_id = None
+    user = None
     
     try:
         # loginToken
         loginToken = request.json['loginToken']
-        user_id, verify_status = v.verify_loginToken(loginToken)
+        user, verify_status = v.verify_loginToken(loginToken)
         if verify_status == False:
-            return user_id
+            return user
         
-        if user_id == None:
+        if user == None:
             return Response("Endpoint Error: DELETE - follows", mimetype="plain/text", status=494)        
         
         followId = request.json['followId']
         
-        response = f.delete_db(user_id, followId)
+        response = f.delete_db(user['id'], followId)
     except KeyError as ke:
         return Response("Endpoint Error: keyname DELETE - follow"+str(ke), mimetype="plain/text", status=500)
     except Exception as E:
