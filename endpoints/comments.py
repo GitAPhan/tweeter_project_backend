@@ -11,7 +11,7 @@ def get():
         # input request for tweetId
         tweetId = request.args['tweetId']
         # DB request
-        response = c.get_db(tweetId)
+        response = c.get_db(tweetId, None)
     except KeyError:
         return Response("Endpoint Error: 'tweetId' keyname not present", mimetype="plain/text", status=500)
     except Exception as E:
@@ -63,6 +63,49 @@ def post():
     # None check - catch
     if response == None:
         response = Response("Endpoint Error: POST comments - catch error", mimetype='plain/text', status=499)
+
+    return response
+
+# PATCH request for comments
+def patch():
+    response = None
+    user = None
+
+    try:
+        # input request and verification of loginToken
+        loginToken = request.json['loginToken']
+        user, status = v.verify_loginToken(loginToken)
+
+        # check to see if token was valid
+        if status != True:
+            return user
+    except KeyError:
+        return Response("Endpoint Error: 'loginToken' keyname not present", mimetype="plain/text", status=500)
+    except Exception as E:
+        return Response("Endpoint Error: POST comment -"+str(E), mimetype="plain/text", status=499)
+
+    try:
+        # input request for tweetId and content
+        keyname_verify = Response("Endpoint Error: 'tweetId' keyname not present", mimetype="plain/text", status=500)
+        commentId = int(request.json['commentId'])
+        keyname_verify = Response("Endpoint Error: 'content' keyname not present", mimetype="plain/text", status=500)
+        content = request.json['content']
+        if len(content) > 150:
+            return Response("comment has exceeded the 150 character limit", mimetype="plain/text", status=400)
+        # DB request
+        if user == None:
+            return Response("DB Error: PATCH comments - verify loginToken did not run", mimetype="plain/text", status=499)
+        response = c.patch_db(user, commentId, content)
+    except KeyError:
+        return keyname_verify
+    except ValueError:
+        return Response("Endpoint Error: invalid value entered for keyname 'tweetId'", mimetype="plain/text", status=400)
+    except Exception as E:
+        return Response("Endpoint Error: PATCH comments -"+str(E), mimetype="plain/text", status=499)
+
+    # None check - catch
+    if response == None:
+        response = Response("Endpoint Error: PATCH comments - catch error", mimetype='plain/text', status=499)
 
     return response
 

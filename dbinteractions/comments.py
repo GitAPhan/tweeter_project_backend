@@ -1,3 +1,4 @@
+from dis import disco
 import json
 import dbinteractions.dbinteractions as c
 import mariadb as db
@@ -6,15 +7,32 @@ from flask import Response
 import datetime
 
 # GET comment from database
-def get_db(tweetId):
+def get_db(tweetId, commentId):
     response = None
     comments = None
+
+    # query builder
+    query_keyname = None
+    query_keyvalue = None
+    if tweetId != None and commentId == None:
+        # if tweetId was input
+        query_keyname = "c.tweet_id"
+        query_keyvalue = [tweetId]
+    
+    elif commentId != None and tweetId == None:
+        # if commentId was input
+        query_keyname = "c.id"
+        query_keyvalue = [commentId]
+    query_request = f'SELECT c.id, c.tweet_id, c.user_id, u.username, c.content, c.created_at FROM comment c INNER JOIN user u ON u.id = c.user_id WHERE {query_keyname} =?'
+    # None check
+    if query_keyvalue == None or query_keyname == None:
+        return Response("DB Error: GET comments - only one key:value can be submitted", mimetype="plain/text", status=406)
 
     conn, cursor = c.connect_db()
     
     try:
         # query request to grab all comments relating to tweetId
-        cursor.execute('SELECT c.id, c.tweet_id, c.user_id, u.username, c.content, c.created_at FROM comment c INNER JOIN user u ON u.id = c.user_id WHERE c.tweet_id =?', [tweetId])
+        cursor.execute(query_request, query_keyvalue)
         comments = cursor.fetchall()
     except Exception as E:
         response = Response("DB Error: GET comments -"+str(E), mimetype="plain/text", status=499)
@@ -76,6 +94,38 @@ def post_db(user, tweetId, content):
         response = Response("DB Error: POST comments - catch error", mimetype="plain/text", status=499)
     
     return response
+
+# PATCH comment in database
+def patch_db(user, commentId, content):
+    response = None
+    status = None
+
+    conn, cursor = c.connect_db()
+
+    try:
+        #  query request to update comment in database
+        cursor.execute("UPDATE comment SET content=? WHERE id=? and user_id=?", [content, commentId, user['id']])
+        conn.commit()
+        status = cursor.rowcount
+
+        if status != 1:
+            response = Response("DB Error: PATCH comments - nothing was updated", mimetype="plain/text", status=499)
+    except Exception as E:
+        response = Response("DB Error: PATCH comments -"+str(E), mimetype="plain/text", status=499)
+    
+    c.disconnect_db(conn, cursor)
+
+    # return any value of response that is not None
+    if response != None:
+        return response
+    
+    response = get_db(None, commentId)
+
+    # None check - catch
+    if response == None:
+        response = Response("DB Error: PATCH comments - catch error", mimetype="plain/text", status=499)
+
+    return response    
 
 # DELETE comment from database
 def delete_db(userId, commentId):

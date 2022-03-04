@@ -118,8 +118,14 @@ def post_comment():
     return comments.post()
 
 # patch comment
+@app.patch('/api/comments')
+def patch_comment():
+    return comments.patch()
 
 # delete comment
+@app.delete('/api/comments')
+def delete_comment():
+    return comments.delete()
 
 ## comment likes
 # get comment likes
