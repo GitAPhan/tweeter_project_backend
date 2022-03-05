@@ -25,7 +25,9 @@ def get():
         return Response("Endpoint Error: Invalid value entered for tweetId", mimetype="plain/text", status=400)
     
     if userId == None and tweetId == None:
-        return Response("Endpoint Error: GET - tweet 'keyname' error", mimetype="plain/text", status=500)
+        # get all tweets
+
+        print('NONE ')
 
     response = t.get_db(userId, tweetId)
 

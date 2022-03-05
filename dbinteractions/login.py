@@ -2,7 +2,7 @@ import json
 from flask import Response
 import secrets
 import dbinteractions.dbinteractions as db
-import helpers.format_output as fo
+import helpers.format_output as format
 
 # # Login requests 
 # post login session and create loginToken
@@ -41,7 +41,7 @@ def user_login_db(payload, type):
     if profile == None:
         response = Response("DB Error: Login general error", mimetype="plain/text", status=403)
     else:
-        response = fo.format_user_output(profile)
+        response = format.user(profile)
         response_json = json.dumps(response, default=str)
         response = Response(response_json, mimetype="application/json", status=200)
 
