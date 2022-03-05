@@ -1,7 +1,7 @@
 import json
 import dbinteractions.dbinteractions as c
 import mariadb as db
-import helpers.format_output as fo
+import helpers.format_output as format
 from flask import Response
 
 # GET tweet_like from database
@@ -29,7 +29,7 @@ def get_db(tweetId):
         # format response
         response = []
         for like in likes:
-            x = fo.format_tweet_like_output(like)
+            x = format.tweet_like(like)
             response.append(x)
         response_json = json.dumps(response, default=str)
         response = Response(response_json, mimetype="application/json", status=200)

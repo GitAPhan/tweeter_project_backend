@@ -4,8 +4,9 @@ import endpoints.users as users
 import endpoints.login as login
 import endpoints.follows as follows
 import endpoints.tweets as tweets
-import endpoints.tweet_likes as tlike
+import endpoints.tweet_likes as tlikes
 import endpoints.comments as comments
+import endpoints.comment_likes as clikes
 
 
 app = Flask(__name__)
@@ -94,17 +95,17 @@ def delete_tweet():
 # get tweet like
 @app.get('/api/tweet_likes')
 def get_tweet_like():
-    return tlike.get()
+    return tlikes.get()
 
 # post tweet like
 @app.post('/api/tweet_likes')
 def post_tweet_like():
-    return tlike.post()
+    return tlikes.post()
 
 # delete tweet like
 @app.delete('/api/tweet_likes')
 def delete_tweet_like():
-    return tlike.delete()
+    return tlikes.delete()
 
 ## comments
 # get commment
@@ -129,13 +130,23 @@ def delete_comment():
 
 ## comment likes
 # get comment likes
+@app.get('/api/comment_likes')
+def get_comment_like():
+    return clikes.get()
 
 # post comment likes
+@app.post('/api/comment_likes')
+def post_comment_like():
+    return clikes.post()
 
 # delete comment likes
+@app.delete('/api/comment_likes')
+def delete_comment_likes():
+    return clikes.delete()
 
 
-# testing/production mode code
+# ## RUN MODE SETTINGS ##
+# mode check
 if len(sys.argv) > 1:
     mode = sys.argv[1]
 else:
@@ -144,6 +155,7 @@ else:
     )
     exit()
 
+# testing/production mode code
 if mode == "testing":
     from flask_cors import CORS
 

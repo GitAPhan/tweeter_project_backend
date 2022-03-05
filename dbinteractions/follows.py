@@ -1,7 +1,7 @@
 import json
 import dbinteractions.dbinteractions as c
 import mariadb as db
-import helpers.format_output as fo
+import helpers.format_output as format
 from flask import Response
 
 
@@ -22,7 +22,7 @@ def get_db(userId):
             response = []
             # format response output
             for user in users:
-                response.append(fo.format_user_output(user))
+                response.append(format.user(user))
             # RESPONSE
             if response == []:
                 return Response("YOU FOLLOW NO ONE", mimetype="plain/text", status=204)
@@ -129,7 +129,7 @@ def get_follower_db(userId):
             response = []
             # format response output
             for user in users:
-                response.append(fo.format_user_output(user))
+                response.append(format.user(user))
             # RESPONSE
             if response == []:
                 return Response("YOU HAVE NO FOLLOWERS", mimetype="plain/text", status=204)

@@ -1,7 +1,7 @@
 import json
 import dbinteractions.dbinteractions as c
 import mariadb as db
-import helpers.format_output as fo
+import helpers.format_output as format
 from flask import Response
 
 # GET tweet from database
@@ -43,7 +43,7 @@ def get_db(userId, tweetId):
 
     response = []
     for tweet in tweets:
-        x = fo.format_tweet_output(tweet)
+        x = format.tweet(tweet)
         response.append(x)
     response_json = json.dumps(response, default=str)
     if response == []:
@@ -110,7 +110,7 @@ def patch_db(userId, tweetId, content, imageUrl):
         array = [tweetId, content]
         if imageUrl != None:
             array.append(imageUrl)
-        response = fo.format_tweet_output(array)
+        response = format.tweet(array)
         
         response_json = json.dumps(response, default=str)
         response = Response(response_json, mimetype="application/json", status=200)

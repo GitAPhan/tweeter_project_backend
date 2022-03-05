@@ -24,7 +24,7 @@
 #         }
 
 
-def format_user_output(user):
+def user(user):
     # VERSION 2 
     key_name = {
         0: "userId",
@@ -39,13 +39,13 @@ def format_user_output(user):
 
     return_payload = {}
     i = 0
-    for col in user:        
+    for col in user:
         return_payload[key_name[i]] = col
         i += 1
 
     return return_payload
 
-def format_tweet_output(tweet):
+def tweet(tweet):
     key_name = {
         0: "tweetId",
         1: "userId",
@@ -68,7 +68,7 @@ def format_tweet_output(tweet):
     return return_payload
 
 # format tweet_like output
-def format_tweet_like_output(tweet):
+def tweet_like(tweet):
     key_name = {
         0: "tweetId",
         1: "userId",
@@ -97,6 +97,22 @@ def comment(comment):
     return_payload = {}
     i = 0
     for col in comment:
+        return_payload[keyname[i]] = col
+        i += 1
+
+    return return_payload
+
+# format comment_like
+def comment_like(comment_like):
+    keyname = {
+        0: "commentId",
+        1: "userId",
+        2: "username"
+    }
+
+    return_payload = {}
+    i = 0
+    for col in comment_like:
         return_payload[keyname[i]] = col
         i += 1
 

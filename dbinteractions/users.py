@@ -3,8 +3,7 @@ from flask import Response
 import dbinteractions.dbinteractions as db
 import secrets
 import mariadb as d
-import helpers.format_output as fo
-import helpers.verification as v
+import helpers.format_output as format
 
 ## users
 # get user from db
@@ -36,7 +35,7 @@ def get_db(userId):
         response = []
         # format response for easier readability
         for user in users:
-            x = fo.format_user_output(user)
+            x = format.user(user)
             response.append(x)
     
     if response != []:
@@ -109,7 +108,7 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
         return response
     if userId == None or loginToken == None:
         return Response('DB Error: general POST error', mimetype="plain/text", status=492)
-    response = fo.format_user_output(
+    response = format.user(
         [userId, email, username, bio, birthdate, imageUrl, bannerUrl, loginToken]
     )
     response_json = json.dumps(response, default=str)
