@@ -92,7 +92,7 @@ def post_db(userId, content, imageUrl):
     if tweetId == None:
         return Response("DB Error: POST tweet - general error", mimetype="plain/text", status=490)
     
-    response = get_db(None, tweetId)
+    response = get_db(None, tweetId, None, None)
 
     if response == None:
         response = Response("DB Error: POST tweet - catch error", mimetype="plain/text", status=491)
@@ -130,7 +130,7 @@ def patch_db(userId, tweetId, content, imageUrl):
     if status != 1:
         return Response("DB Error: PATCH tweet - no changes were made", mimetype="plain/text", status=491)
     
-    response = get_db(None, tweetId)
+    response = get_db(None, tweetId, None, None)
     
     if response == None:
         response = Response("DB Error: PATCH tweet - catch error", mimetype="plain/text", status=492)
