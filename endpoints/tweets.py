@@ -17,29 +17,40 @@ def get():
         return Response("Endpoint Error: Invalid value entered for userId", mimetype="plain/text", status=400)
     
     try:
-        tweetId = request.args['tweetId']
+        tweetId = int(request.args['tweetId'])
     except KeyError:
         tweetId = None
         print('"tweetId" keyname not present') #testing only
     except ValueError:
         return Response("Endpoint Error: Invalid value entered for tweetId", mimetype="plain/text", status=400)
     
-    if userId == None and tweetId == None:
-        # get all tweets
+    try:
+        discoverId = int(request.args['discoverId'])
+    except KeyError:
+        discoverId = None
+        print('"discoverId" keyname not present') #testing only
+    except ValueError:
+        return Response("Endpoint Error: Invalid value entered for discoverId", mimetype="plain/text", status=400)
+    
+    try:
+        feedId = int(request.args['feedId'])
+    except KeyError:
+        feedId = None
+        print('"feedId" keyname not present') #testing only
+    except ValueError:
+        return Response("Endpoint Error: Invalid value entered for feedId", mimetype="plain/text", status=400)
 
-        print('NONE ')
-
-    response = t.get_db(userId, tweetId)
+    response = t.get_db(userId, tweetId, discoverId, feedId)
 
     if response == None:
         response = Response("Endpoint Error: GET catch error", mimetype="plain/text", status="493")
     
     return response
 
+
 # POST tweet
 def post():
     response = None
-    status = None
     user = None
     content = None
     imageUrl = None
@@ -84,7 +95,6 @@ def post():
 # PATCH tweet
 def patch():
     response = None
-    status = None
     user = None
     content = None
     tweetId = None
@@ -134,7 +144,6 @@ def patch():
 # DELETE tweet
 def delete():
     response = None
-    status = None
     user = None
 
     try:

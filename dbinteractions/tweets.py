@@ -5,22 +5,26 @@ import helpers.format_output as format
 from flask import Response
 
 # GET tweet from database
-def get_db(userId, tweetId):
+def get_db(userId, tweetId, discoverId, feedId):
     response = None
     tweets = None
     query_keyname = ""
     query_keyvalue = None
-
+    # 
     if tweetId != None:
         query_keyname = "WHERE t.id = ?"
         query_keyvalue = tweetId
-    if userId != None:
+    elif userId != None:
         query_keyname = "WHERE t.user_id = ?"
         query_keyvalue = userId
-    # if query_keyvalue == None or query_keyname == None:
-    #     return Response(
-    #         "DB Error: GET - general tweet error", mimetype="plain/text", status=500
-    #     )
+    # query to select tweet of unfollowed users
+    elif discoverId != None:
+        query_keyname = "INNER JOIN follow f ON f.follow_id = u.id WHERE f.user_id != ?"
+        query_keyvalue = discoverId
+    # query to select tweet of followed users
+    elif feedId != None:
+        query_keyname = "INNER JOIN follow f ON f.follow_id = u.id WHERE f.user_id =?"
+        query_keyvalue = feedId
 
     query_base = f"SELECT t.id, t.user_id, u.username, t.content, t.created_at, u.imageUrl, t.image_url FROM tweet t INNER JOIN user u ON u.id = t.user_id {query_keyname} ORDER BY t.created_at DESC"
 
@@ -59,7 +63,6 @@ def get_db(userId, tweetId):
         )
 
     return response
-
 
 # POST tweet to database
 def post_db(userId, content, imageUrl):
