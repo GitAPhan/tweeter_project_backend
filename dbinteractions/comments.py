@@ -70,7 +70,7 @@ def post_db(user, tweetId, content):
 
     try:
         # query request to create new comment in database
-        cursor.execute("INSERT INTO comment (content, tweet_id, user_id) VALUE (?,?,?)",[content, tweetId, user_id])
+        cursor.execute("INSERT INTO comment (content, tweet_id, user_id) VALUE (?,?,?)",[content, tweetId, user['id']])
         conn.commit()
         commentId = cursor.lastrowid
     except KeyError as E:

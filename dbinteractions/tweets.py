@@ -22,7 +22,7 @@ def get_db(userId, tweetId):
     #         "DB Error: GET - general tweet error", mimetype="plain/text", status=500
     #     )
 
-    query_base = f"SELECT t.id, t.user_id, u.username, t.content, t.created_at, u.imageUrl, t.image_url FROM tweet t INNER JOIN user u on u.id = t.user_id{query_keyname}"
+    query_base = f"SELECT t.id, t.user_id, u.username, t.content, t.created_at, u.imageUrl, t.image_url FROM tweet t INNER JOIN user u ON u.id = t.user_id {query_keyname} ORDER BY t.created_at DESC"
 
     conn, cursor = c.connect_db()
 
@@ -124,18 +124,10 @@ def patch_db(userId, tweetId, content, imageUrl):
 
     if response != None:
         return response
-    if status == None:
-        return Response("DB Error: PATCH tweet - general error", mimetype="plain/text", status=491)
-    if status == 0:
+    if status != 1:
         return Response("DB Error: PATCH tweet - no changes were made", mimetype="plain/text", status=491)
-    else:
-        array = [tweetId, content]
-        if imageUrl != None:
-            array.append(imageUrl)
-        response = format.tweet(array)
-        
-        response_json = json.dumps(response, default=str)
-        response = Response(response_json, mimetype="application/json", status=200)
+    
+    response = get_db(None, tweetId)
     
     if response == None:
         response = Response("DB Error: PATCH tweet - catch error", mimetype="plain/text", status=492)

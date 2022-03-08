@@ -61,13 +61,13 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
             query_questionmark += ",?"
             query_keyvalue.append(imageUrl)
         else:
-            imageUrl = "default image url profile"
+            imageUrl = 'https://images.unsplash.com/photo-1530842128367-9e448d986a75?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=735&q=80'
         if bannerUrl != None:
             query_keyname += ", bannerUrl"
             query_questionmark += ",?"
             query_keyvalue.append(bannerUrl)
         else:
-            bannerUrl = "default image url for banner"
+            bannerUrl = 'https://images.unsplash.com/photo-1605778336713-0a7fb1b80c2b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1282&q=80'
         query_string = (
             f"insert into user ({query_keyname}) values ({query_questionmark})"
         )
@@ -121,7 +121,7 @@ def post_user_db(email, username, password, salt, bio, birthdate, imageUrl, bann
 def patch_db(userId, email, username, bio, birthdate, imageUrl, bannerUrl):
     conn, cursor = db.connect_db()
     response = None
-    status_code = None
+    status = None
 
     try:
         query_keyname = ""
@@ -155,15 +155,15 @@ def patch_db(userId, email, username, bio, birthdate, imageUrl, bannerUrl):
 
         cursor.execute(query_string, query_keyvalue)
         conn.commit()
-        row_count = cursor.rowcount
+        status = cursor.rowcount
         # userId = cursor.lastrowid
 
-        if row_count == 1:
+        if status == 1:
             response = get_db(userId)
         else:
             response = Response("Patch Error: nothing was updated", mimetype="plain/text", status=490)
     except d.OperationalError as oe:
-        response = Response("DB Error: " + str(oe), mimetype="plain/text", status=500)
+        response = Response("DB Error: " + str(oe), mimetype="plain/text", status=400)
     except d.IntegrityError as ie:
         response = Response("USER: Invalid value - " + str(ie)[0:-21], mimetype="plain/text", status=400)
     except d.DataError as de:
@@ -173,10 +173,10 @@ def patch_db(userId, email, username, bio, birthdate, imageUrl, bannerUrl):
 
     db.disconnect_db(conn, cursor)
 
-    if status_code == None or response == None:
-        response = Response("DB Error: PATCH catch error", mimetype="plain/text", status=491)
-
-    return response
+    if response != None:
+        return response
+    else:
+        return Response("DB Error: PATCH catch error", mimetype="plain/text", status=491)
 
 # delete user from database
 def delete_db(loginToken):

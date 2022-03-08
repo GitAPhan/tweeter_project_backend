@@ -9,7 +9,7 @@ def get():
 
     # input request of tweetId
     try:
-        tweetId = int(request.json['tweetId'])
+        tweetId = int(request.args['tweetId'])
     except KeyError:
         return Response("'tweetId' keyname not present", mimetype="plain/text", status=500)
     except Exception as E:

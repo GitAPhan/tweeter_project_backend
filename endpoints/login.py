@@ -10,24 +10,45 @@ def post():
 
     response = None
 
-    #user input email and password
     try:
-        keyname_verify = Response("ADMIN: Key Error - 'email'", mimetype="plain/text", status=500)
+        # user input for email
         email = request.json['email']
         hashpass, salt = db.get_hashpass_salt_db(email, "email")
-
-        if hashpass == None or hashpass == False:
+        # verify
+        if hashpass == False:
             return salt
+    except KeyError:
+        email = None
 
-        keyname_verify = Response("ADMIN: Key Error - 'password'", mimetype="plain/text", status=500)
+    try:
+        # user input for username
+        username = request.json['username']
+        hashpass, salt = db.get_hashpass_salt_db(username, "username")
+        # verify
+        if hashpass == False:
+            return salt
+    except KeyError:
+        username = None
+
+    
+    try:
+        if hashpass == None:
+            return Response("Endpoint Error: POST login - we ran into a problem verifying your login credentials", mimetype="plain/text", status=401)
+
+        #user input password
         password = request.json['password']
         
         if v.verify_hashed_salty_password(hashpass, salt, password):
-            response = u.user_login_db(email, "email")
+            if email != None:
+                response = u.user_login_db(email, "email")
+            elif username != None:
+                response = u.user_login_db(username, "username")
+            else:
+                return Response("Endpoint Error: POST login - we ran into a problem running your request", mimetype="plain/text", status=401)
         else:
             return Response("USER: Invalid 'password', please check you credentials and try again!", mimetype="plain/text", status=401)
     except KeyError:
-        return keyname_verify
+        return Response("ADMIN: Key Error - 'password'", mimetype="plain/text", status=500)
 
     if response == None:
         response = Response("Endpoint Error: POST login - catch error", mimetype="plain/text", status=493)

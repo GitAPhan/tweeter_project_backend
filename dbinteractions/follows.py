@@ -14,7 +14,7 @@ def get_db(userId):
 
     try:
         cursor.execute(
-            "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.imageUrl FROM user u INNER JOIN follow f ON f.follow_id = u.id WHERE f.user_id = ?",
+            "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.imageUrl FROM user u INNER JOIN follow f ON f.follow_id = u.id WHERE f.user_id = ? ORDER BY f.created_at DESC",
             [userId],
         )
         users = cursor.fetchall()
@@ -121,7 +121,7 @@ def get_follower_db(userId):
 
     try:
         cursor.execute(
-            "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.imageUrl FROM user u INNER JOIN follow f ON f.user_id = u.id WHERE f.follow_id = ?",
+            "SELECT u.id, u.email, u.username, u.bio, u.birthdate, u.imageUrl FROM user u INNER JOIN follow f ON f.user_id = u.id WHERE f.follow_id = ? ORDER BY f.created_at DESC",
             [userId],
         )
         users = cursor.fetchall()

@@ -107,6 +107,12 @@ def patch():
 
     try:
         username = request.json['username']
+        status = v.verify_username(username)
+        # status check
+        if status:
+            pass
+        else:
+            return Response("Invalid Username: username must be between 8-64 characters with no whitespace or '@'", mimetype="plain/text", status=400)
     except KeyError:
         username = None
         print('"username" keyname not present') #testing only

@@ -18,8 +18,8 @@ def verify_password(password):
 
 # verify that user input username is valid
 def verify_username(username):
-    # username cannot contain a whitespace and between 8-64 characters
-    if re.fullmatch(r'((?!.*[\s]).{8,64})', username):
+    # username cannot contain a whitespace or '@' and between 8-64 characters
+    if re.fullmatch(r'(?!.[@\s])([a-zA-Z0-9\-\_\.]{8,64})', username):
         return True
     else:
         return False
