@@ -75,14 +75,6 @@ def get_follower():
 @app.get('/api/tweets')
 def get_tweet():
     return tweets.get()
-# get tweets for discover
-@app.get('/api/discover')
-def get_tweet_discover():
-    return tweets.discover()
-# get tweets for feed (followed)
-@app.get('/api/feed')
-def get_tweet_feed():
-    return tweets.feed()
 
 # post tweet
 @app.post('/api/tweets')
